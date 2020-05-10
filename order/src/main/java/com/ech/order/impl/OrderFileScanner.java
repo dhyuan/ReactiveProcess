@@ -5,6 +5,7 @@ import com.ech.order.IOrderScanner;
 import com.ech.order.Order;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,10 +21,8 @@ import java.util.List;
 import static java.time.Duration.ofMillis;
 
 @Component
+@Slf4j
 public class OrderFileScanner implements IOrderScanner {
-
-    private static final Logger LOG = LogManager.getLogger(OrderFileScanner.class);
-
     @Value("${order.file.name:orders.json}")
     private String orderFileName;
 
@@ -42,9 +41,9 @@ public class OrderFileScanner implements IOrderScanner {
             orders = objectMapper.readValue(jsonFile, new TypeReference<List<Order>>(){});
         } catch (Exception e) {
             e.printStackTrace();
-            LOG.error(String.format("Failed to parse the json from file %s", orderFileName));
+            log.error(String.format("Failed to parse the json from file %s", orderFileName));
         }
-        LOG.info("There are {} orders are read from file.", orders.size());
+        log.info("There are {} orders are read from file.", orders.size());
         return orders;
     }
 
@@ -53,18 +52,18 @@ public class OrderFileScanner implements IOrderScanner {
                 .zipWithIterable(readAllOrders())
                 .map(t -> t.getT2())
                 .subscribe(orderReceiver);
-        LOG.info("A subscriber registered on order receiver.");
+        log.info("A subscriber registered on order receiver.");
     }
 
     private String getOrderFilePath() {
         try {
             final URL jsonFileURL = this.getClass().getModule().getClassLoader().getResource(orderFileName);
             final String jsonFile = Paths.get(jsonFileURL.toURI()).toFile().getAbsolutePath();
-            LOG.info("Find the orders file in {}", jsonFile);
+            log.info("Find the orders file in {}", jsonFile);
 
             return jsonFile;
         } catch (Exception e) {
-            LOG.error("Cannot find the order file {}.", orderFileName);
+            log.error("Cannot find the order file {}.", orderFileName);
             return orderFileName;
         }
     }

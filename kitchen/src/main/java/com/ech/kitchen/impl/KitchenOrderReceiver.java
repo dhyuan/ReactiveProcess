@@ -2,9 +2,7 @@ package com.ech.kitchen.impl;
 
 import com.ech.order.IOrderObserver;
 import com.ech.order.Order;
-//import com.ech.css.order.impl.OrderFileScanner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,8 +13,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 public class KitchenOrderReceiver implements IOrderObserver<Order> {
-    private static final Logger LOG = LogManager.getLogger(KitchenOrderReceiver.class);
 
     @Value("${kitchen.order.poll.amount.onetime:1}")
     private static long ORDER_PULL_TIMEOUT = 1;
@@ -32,21 +30,21 @@ public class KitchenOrderReceiver implements IOrderObserver<Order> {
 
     public void beginObserve() {
         if (!isObserving) {
-            LOG.info("Kitchen begin to receive orders as much as possible.");
+            log.info("Kitchen begin to receive orders as much as possible.");
             orderSubscription.request(ORDER_AMOUNT_IN_ONE_REQ);
             isObserving = true;
         } else {
-            LOG.info("Kitchen already opened.");
+            log.info("Kitchen already opened.");
         }
     }
 
     @Override
     public void stopObserve() {
         if (isObserving) {
-            LOG.info("Kitchen closing ... not to receive orders ...");
+            log.info("Kitchen closing ... not to receive orders ...");
             orderSubscription.cancel();
         } else {
-            LOG.info("Kitchen already closed.");
+            log.info("Kitchen already closed.");
         }
     }
 
@@ -65,38 +63,38 @@ public class KitchenOrderReceiver implements IOrderObserver<Order> {
         try {
             final Order order = internalOrderQueue.pollFirst(ORDER_PULL_TIMEOUT, TimeUnit.MINUTES);
             if (order != null) {
-                LOG.info("An order received. {}", order);
+                log.info("An order received. {}", order);
                 return Optional.of(order);
             }
         } catch (InterruptedException e) {
-            LOG.warn("Exception occurred while waiting next order: {}", e.getMessage());
+            log.warn("Exception occurred while waiting next order: {}", e.getMessage());
         }
 
-        LOG.warn("There is no order available in {} minutes.", ORDER_PULL_TIMEOUT);
+        log.warn("There is no order available in {} minutes.", ORDER_PULL_TIMEOUT);
         return Optional.empty();
     }
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        LOG.info("Kitchen are ready to receive orders.");
+        log.info("Kitchen are ready to receive orders.");
         this.orderSubscription = subscription;
     }
 
     @Override
     public void onNext(Order order) {
-        LOG.debug("A new order coming. {}", order);
+        log.debug("A new order coming. {}", order);
         internalOrderQueue.offerLast(order);
         orderSubscription.request(ORDER_AMOUNT_IN_ONE_REQ);
     }
 
     @Override
     public void onError(Throwable throwable) {
-        LOG.error("Error occurred while receiving order: {}", throwable.getMessage());
+        log.error("Error occurred while receiving order: {}", throwable.getMessage());
     }
 
     @Override
     public void onComplete() {
-        LOG.info("All order are received.");
+        log.info("All order are received.");
         orderSubscription.cancel();
     }
 }

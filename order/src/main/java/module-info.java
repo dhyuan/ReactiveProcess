@@ -1,15 +1,16 @@
-module com.ech.order {
+open module com.ech.order {
     requires com.fasterxml.jackson.annotation;
     requires org.reactivestreams;
+    requires org.slf4j;
     requires spring.beans;
     requires spring.context;
     requires com.fasterxml.jackson.core;
     requires org.apache.logging.log4j;
     requires reactor.core;
     requires com.fasterxml.jackson.databind;
+    requires lombok;
 
-    opens com.ech.order;
-    opens com.ech.order.impl;
+    uses com.ech.order.Order;
 
     exports com.ech.order;
     exports com.ech.order.impl;

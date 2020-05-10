@@ -3,8 +3,7 @@ package com.ech.kitchen.impl;
 import com.ech.kitchen.IKitchenSystem;
 import com.ech.order.IOrderObserver;
 import com.ech.order.Order;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@Slf4j
 public class KitchenSystem implements IKitchenSystem {
-    private static final Logger LOG = LogManager.getLogger(KitchenSystem.class);
 
     @Autowired
     public IOrderObserver<Order> orderObserver;
@@ -32,6 +31,9 @@ public class KitchenSystem implements IKitchenSystem {
 
     @Override
     public void openKitchen(IOrderObserver<Order> orderReceiver) {
+        if (isOpen) {
+            log.warn("The kitchen is opened already.");
+        }
         orderObserver = orderReceiver;
         orderObserver.beginObserve();
         cookForInComingOrders();
@@ -43,14 +45,14 @@ public class KitchenSystem implements IKitchenSystem {
             while (isOpen || orderObserver.hasNext()) {
                 final Optional<Order> orderOptional = orderObserver.nextOrder();
                 if (orderOptional.isEmpty()) {
-                    LOG.warn("There's no order for a while. Let's waiting ...");
+                    log.warn("There's no order for a while. Let's waiting ...");
                 } else {
                     final Order order = orderOptional.get();
-                    LOG.info("An order in kitchen ... {}", counter.incrementAndGet());
-                    LOG.info("Cook Done! {}", order);
+                    log.info("An order in kitchen ... {}", counter.incrementAndGet());
+                    log.info("Cook Done! {}", order);
                 }
             }
-            LOG.info("Kitchen closed.");
+            log.info("Kitchen closed.");
         });
     }
 
@@ -61,8 +63,11 @@ public class KitchenSystem implements IKitchenSystem {
 
     @Override
     public void closeKitchen() {
-        orderObserver.stopObserve();
+        if (!isOpen) {
+            log.warn("The kitchen is closed already.");
+        }
         isOpen = false;
+        orderObserver.stopObserve();
     }
 
 
