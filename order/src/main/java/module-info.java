@@ -1,3 +1,5 @@
+import com.ech.order.mo.Order;
+
 open module com.ech.order {
     requires com.fasterxml.jackson.annotation;
     requires org.reactivestreams;
@@ -10,10 +12,11 @@ open module com.ech.order {
     requires com.fasterxml.jackson.databind;
     requires lombok;
 
-    uses com.ech.order.Order;
+    uses Order;
 
     exports com.ech.order;
     exports com.ech.order.impl;
+    exports com.ech.order.mo;
 
     provides com.ech.order.IOrderScanner
             with com.ech.order.impl.OrderFileScanner;

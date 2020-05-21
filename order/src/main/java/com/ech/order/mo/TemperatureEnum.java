@@ -1,4 +1,4 @@
-package com.ech.order;
+package com.ech.order.mo;
 
 public enum TemperatureEnum {
     frozen, cold, hot

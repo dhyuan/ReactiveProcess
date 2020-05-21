@@ -1,21 +1,23 @@
 package com.ech.kitchen;
 
+import com.ech.kitchen.service.IKitchenService;
 import com.ech.order.IOrderObserver;
 import com.ech.order.IOrderScanner;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = KitchenTestApp.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
+@SpringBootTest
 @Slf4j
-public class KitchenSystemIT {
+public class KitchenSystemIT extends KitchenBaseIT {
 
     @Autowired
     public IOrderScanner orderScanner;
@@ -24,24 +26,24 @@ public class KitchenSystemIT {
     public IOrderObserver kitchenOrderReceiver;
 
     @Autowired
-    public IKitchenSystem kitchenSystem;
+    public IKitchenService kitchenService;
 
     private final static int EXPECTED_ORDER_AMOUNT = 132;
 
     @Test
     public void testSubscribe() throws InterruptedException {
         orderScanner.registerOrderReceiver(kitchenOrderReceiver);
-        kitchenSystem.openKitchen(kitchenOrderReceiver);
+        kitchenService.openKitchen(kitchenOrderReceiver);
 
         int usedTime = 0;
         int expectedMaxProcessTime = 8000;
-        while (kitchenSystem.processedOrderAmount() < EXPECTED_ORDER_AMOUNT) {
+        while (kitchenService.processedOrderAmount() < EXPECTED_ORDER_AMOUNT) {
             Thread.sleep(500);
             expectedMaxProcessTime += usedTime;
         }
-        kitchenSystem.closeKitchen();
+        kitchenService.closeKitchen();
 
-        Assert.assertEquals(EXPECTED_ORDER_AMOUNT, kitchenSystem.processedOrderAmount());
-        Assert.assertTrue(usedTime < expectedMaxProcessTime);
+        assertEquals(EXPECTED_ORDER_AMOUNT, kitchenService.processedOrderAmount());
+        assertTrue(usedTime < expectedMaxProcessTime);
     }
 }

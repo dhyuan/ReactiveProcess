@@ -1,7 +1,7 @@
-package com.ech.kitchen;
+package com.ech.kitchen.service;
 
 import com.ech.order.IOrderObserver;
-import com.ech.order.Order;
+import com.ech.order.mo.Order;
 
 /**
  * This interface defines what the kitchen system need to do:
@@ -12,7 +12,7 @@ import com.ech.order.Order;
  * 3) Records the number of order processed.
  *
  */
-public interface IKitchenSystem {
+public interface IKitchenService {
 
     /**
      * After this method is called, the kitchen begin to receive orders.

@@ -1,8 +1,9 @@
-package com.ech.kitchen.impl;
+package com.ech.kitchen.service.impl;
 
-import com.ech.kitchen.IKitchenSystem;
+import com.ech.kitchen.service.IKitchenService;
+import com.ech.kitchen.entity.Kitchen;
 import com.ech.order.IOrderObserver;
-import com.ech.order.Order;
+import com.ech.order.mo.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Slf4j
-public class KitchenSystem implements IKitchenSystem {
+public class KitchenService implements IKitchenService {
 
     @Autowired
     public IOrderObserver<Order> orderObserver;
@@ -28,6 +29,9 @@ public class KitchenSystem implements IKitchenSystem {
     }
 
     private volatile boolean isOpen = false;
+
+    @Autowired
+    private Kitchen kitchen;
 
     @Override
     public void openKitchen(IOrderObserver<Order> orderReceiver) {

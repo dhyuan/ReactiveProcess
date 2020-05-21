@@ -9,8 +9,8 @@ open module com.ech.kitchen {
     requires spring.beans;
     requires lombok;
 
-    exports com.ech.kitchen;
-    exports com.ech.kitchen.impl;
+    exports com.ech.kitchen.service;
+    exports com.ech.kitchen.service.impl;
 
     uses com.ech.order.IOrderObserver;
 }

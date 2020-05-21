@@ -25,7 +25,8 @@
 
 		<jackson.version>2.10.4</jackson.version>
 		<reactor.version>3.3.3.RELEASE</reactor.version>
-		<junit.version>4.13</junit.version>
+		<lombok.version>edge-SNAPSHOT</lombok.version> 	<!-- this version support Lombok @Data in module. -->
+		<surefire.version>2.22.2</surefire.version> 	<!-- for Junit5, the verison 2.22.2 is workable. -->
 	</properties>
 
 	<dependencies>
@@ -61,16 +62,11 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.projectlombok</groupId>-->
-<!--			<artifactId>lombok</artifactId>-->
-<!--			<optional>true</optional>-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>edge-SNAPSHOT</version>
-			<scope>provided</scope> <!-- this version support Lombok @Data in module. -->
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mapstruct</groupId>
@@ -98,12 +94,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -130,7 +120,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version> <!-- Other version(2.14.1, 2.22.2) surefire cannot drive the tests in this module. strange! -->
+				<version>${surefire.version}</version>
 				<configuration>
 					<includes>
 						<include>**/*Test.java</include>

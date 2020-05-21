@@ -1,5 +1,6 @@
-package com.ech.order;
+package com.ech.order.mo;
 
+import com.ech.order.IOrderValueCalculator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -20,6 +21,12 @@ public class Order {
 
     @JsonProperty
     private Float decayRate;
+
+    private IOrderValueCalculator orderValueCalculator;
+
+    public double getOrderValue() {
+        return orderValueCalculator.calculate();
+    }
 
 //    public String getId() {
 //        return id;

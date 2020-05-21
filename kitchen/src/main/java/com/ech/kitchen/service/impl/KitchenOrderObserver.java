@@ -1,7 +1,7 @@
-package com.ech.kitchen.impl;
+package com.ech.kitchen.service.impl;
 
 import com.ech.order.IOrderObserver;
-import com.ech.order.Order;
+import com.ech.order.mo.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class KitchenOrderReceiver implements IOrderObserver<Order> {
+public class KitchenOrderObserver implements IOrderObserver<Order> {
 
     @Value("${kitchen.order.poll.amount.onetime:1}")
     private static long ORDER_PULL_TIMEOUT = 1;
