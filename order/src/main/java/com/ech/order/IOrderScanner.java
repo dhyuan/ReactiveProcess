@@ -3,6 +3,7 @@ package com.ech.order;
 import com.ech.order.mo.Order;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * This interface defines the method need to implement to :
@@ -19,5 +20,11 @@ public interface IOrderScanner {
      */
     List<Order> readAllOrders();
 
-    void registerOrderReceiver(IOrderObserver orderObserver);
+    void registerOrderObserver(IOrderObserver orderObserver);
+
+    void unRegisterOrderObserver(IOrderObserver orderObserver);
+
+    Set<IOrderObserver> getAllOrderObserver();
+
+    void startOrderScanner();
 }

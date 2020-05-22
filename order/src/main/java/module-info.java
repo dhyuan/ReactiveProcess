@@ -1,6 +1,6 @@
 import com.ech.order.mo.Order;
 
-open module com.ech.order {
+module com.ech.order {
     requires com.fasterxml.jackson.annotation;
     requires org.reactivestreams;
     requires org.slf4j;
@@ -17,6 +17,8 @@ open module com.ech.order {
     exports com.ech.order;
     exports com.ech.order.impl;
     exports com.ech.order.mo;
+
+    opens com.ech.order.impl;
 
     provides com.ech.order.IOrderScanner
             with com.ech.order.impl.OrderFileScanner;

@@ -1,6 +1,7 @@
 package com.ech.kitchen.service.impl;
 
 import com.ech.order.IOrderObserver;
+import com.ech.order.impl.OrderObserverAdapter;
 import com.ech.order.mo.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class KitchenOrderObserver implements IOrderObserver<Order> {
+public class KitchenOrderObserver extends OrderObserverAdapter<Order> {
 
     @Value("${kitchen.order.poll.amount.onetime:1}")
     private static long ORDER_PULL_TIMEOUT = 1;
@@ -28,6 +29,7 @@ public class KitchenOrderObserver implements IOrderObserver<Order> {
 
     private volatile boolean isObserving = false;
 
+    @Override
     public void beginObserve() {
         if (!isObserving) {
             log.info("Kitchen begin to receive orders as much as possible.");

@@ -1,6 +1,7 @@
-package com.ech.order;
+package com.ech.order.impl;
 
-import com.ech.order.impl.OrderFileScanner;
+import com.ech.order.IOrderObserver;
+import com.ech.order.IOrderScanner;
 import com.ech.order.mo.Order;
 import com.ech.order.mo.TemperatureEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +14,37 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 public class OrderFileScannerTest {
 
     final private static String ORDERS_JSON_FILENAME = "orders_5.json";
+
+
+    @Test
+    public void testRegisterOrderObserver() {
+        IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
+
+        final IOrderObserver firstObserver = mock(IOrderObserver.class);
+        orderScanner.registerOrderObserver(firstObserver);
+        assertEquals(1, orderScanner.getAllOrderObserver().size());
+    }
+
+    @Test
+    public void testUnRegisterOrderObserver() {
+        IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
+
+        final IOrderObserver firstObserver = mock(IOrderObserver.class);
+        final IOrderObserver secondObserver = mock(IOrderObserver.class);
+        orderScanner.registerOrderObserver(firstObserver);
+        orderScanner.registerOrderObserver(secondObserver);
+        assertEquals(2, orderScanner.getAllOrderObserver().size());
+
+        orderScanner.unRegisterOrderObserver(secondObserver);
+        assertEquals(1, orderScanner.getAllOrderObserver().size());
+    }
 
     @Test
     public void testParseOrdersFromFile() throws URISyntaxException {
@@ -52,4 +79,5 @@ public class OrderFileScannerTest {
         assertNotNull(orders);
         assertEquals(5, orders.size(), "The size of order list is not right.");
     }
+
 }

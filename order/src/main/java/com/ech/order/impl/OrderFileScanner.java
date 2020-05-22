@@ -13,7 +13,9 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.time.Duration.ofMillis;
 
@@ -22,6 +24,8 @@ import static java.time.Duration.ofMillis;
 public class OrderFileScanner implements IOrderScanner {
 
     private String orderFile;
+
+    private Set<IOrderObserver> orderObserverSet = new HashSet<>();
 
     public OrderFileScanner() {}
 
@@ -47,12 +51,30 @@ public class OrderFileScanner implements IOrderScanner {
         return orders;
     }
 
-    public void registerOrderReceiver(IOrderObserver orderObserver) {
-        Flux.interval(ofMillis(10))
-                .zipWithIterable(readAllOrders())
-                .map(t -> t.getT2())
-                .subscribe(orderObserver);
+    public void registerOrderObserver(IOrderObserver orderObserver) {
+        orderObserverSet.add(orderObserver);
         log.info("A subscriber registered on order receiver.");
+    }
+
+    @Override
+    public Set<IOrderObserver> getAllOrderObserver() {
+        return orderObserverSet;
+    }
+
+    @Override
+    public void unRegisterOrderObserver(IOrderObserver orderObserver) {
+        orderObserverSet.remove(orderObserver);
+    }
+
+    @Override
+    public void startOrderScanner() {
+        log.info("Begin to scan the order file.");
+        final Flux<Order> orderFlux = Flux.interval(ofMillis(10))
+                .zipWithIterable(readAllOrders())
+                .map(t -> t.getT2());
+        for (IOrderObserver observer : orderObserverSet) {
+            orderFlux.subscribe(observer);
+        }
     }
 
     public String getOrderFile() {
