@@ -3,7 +3,7 @@ package com.ech.order.impl;
 import com.ech.order.IOrderObserver;
 import com.ech.order.IOrderScanner;
 import com.ech.order.mo.Order;
-import com.ech.order.mo.TemperatureEnum;
+import com.ech.order.mo.OrderTemperatureEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
@@ -15,13 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Slf4j
 public class OrderFileScannerTest {
 
     final private static String ORDERS_JSON_FILENAME = "orders_5.json";
-
 
     @Test
     public void testRegisterOrderObserver() {
@@ -57,14 +55,14 @@ public class OrderFileScannerTest {
         final Order firstOrder = orders.get(0);
         assertTrue("a8cfcb76-7f24-4420-a5ba-d46dd77bdffd".equals(firstOrder.getId()));
         assertTrue("Banana Split".equals(firstOrder.getName()), "");
-        assertEquals(TemperatureEnum.frozen, firstOrder.getTemp());
+        assertEquals(OrderTemperatureEnum.frozen, firstOrder.getTemp());
         assertEquals(20, (int) firstOrder.getShelfLife());
         assertEquals(0.63f, firstOrder.getDecayRate());
 
         Order lastOrder = orders.get(3);
         assertTrue("690b85f7-8c7d-4337-bd02-04e04454c826".equals(lastOrder.getId()));
         assertTrue("Yogurt".equals(lastOrder.getName()), "");
-        assertEquals(TemperatureEnum.cold, lastOrder.getTemp());
+        assertEquals(OrderTemperatureEnum.cold, lastOrder.getTemp());
         assertEquals(263, (int) lastOrder.getShelfLife());
         assertEquals(0.37f, lastOrder.getDecayRate());
     }

@@ -10,6 +10,7 @@ import org.reactivestreams.Subscription;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import reactor.test.StepVerifier;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ import static com.ech.order.impl.ExpectedOrderData.ORDER_1_NAME;
 import static com.ech.order.impl.ExpectedOrderData.ORDER_2_NAME;
 import static com.ech.order.impl.ExpectedOrderData.ORDER_2_TEMP;
 import static com.ech.order.impl.ExpectedOrderData.ORDER_5_NAME;
+import static java.time.Duration.ofSeconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -32,6 +34,41 @@ public class OrderFileScannerIT {
     final private static String ORDERS_JSON_FILENAME = "orders_5.json";
     final private static int TEST_CASE_TIMEOUT = 10;    // Test case timeout setting. second.
     final private static int ORDERS_NUMBER_IN_JSON = 5; // The number of order data in order_5.json.
+
+    final private static int TWO_SECONDS = 2000;
+    final private static int THREE_SECONDS = 3000;
+    @Test
+    public void testOrderIngestionRateAtOneSecond() {
+        final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
+        orderScanner.setIngestionRate(TWO_SECONDS);
+
+        // There are 5 orders, one order needs 2 seconds.  Total time is 10 seconds.
+        StepVerifier.withVirtualTime(() -> orderScanner.readOrderAsFlux())
+                .thenAwait(ofSeconds(2))
+                .expectNextCount(1)
+                .thenAwait(ofSeconds(4))
+                .expectNextCount(2)
+                .thenAwait(ofSeconds(4))
+                .expectNextCount(2)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    public void testOrderIngestionRateAtThreeSecond() {
+        final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
+        orderScanner.setIngestionRate(THREE_SECONDS);
+        // There are 5 orders, one order needs 3 seconds.  Total time is 15 seconds.
+        StepVerifier.withVirtualTime(() -> orderScanner.readOrderAsFlux())
+                .thenAwait(ofSeconds(3))
+                .expectNextCount(1)
+                .thenAwait(ofSeconds(3))
+                .expectNextCount(1)
+                .thenAwait(ofSeconds(9))
+                .expectNextCount(3)
+                .expectComplete()
+                .verify();
+    }
 
     @Test
     public void testOrderNotification() throws InterruptedException {

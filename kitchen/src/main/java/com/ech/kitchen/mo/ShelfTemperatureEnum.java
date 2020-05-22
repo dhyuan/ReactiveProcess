@@ -1,4 +1,4 @@
-package com.ech.kitchen.entity;
+package com.ech.kitchen.mo;
 
 /**
  * There is already a temperature related Enum in the order module.

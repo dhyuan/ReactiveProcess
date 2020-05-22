@@ -1,6 +1,7 @@
 package com.ech.order;
 
 import com.ech.order.mo.Order;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Set;
@@ -12,19 +13,20 @@ import java.util.Set;
  */
 public interface IOrderScanner {
 
-    /**
-     * The order can come form different source such as DB, network or files.
-     * To simplify the demo, let's just use the sync type List other than streaming type Flux.
-     *
-     * @return The list of order.
-     */
     List<Order> readAllOrders();
+    Flux<Order> readOrderAsFlux();
 
     void registerOrderObserver(IOrderObserver orderObserver);
-
     void unRegisterOrderObserver(IOrderObserver orderObserver);
-
     Set<IOrderObserver> getAllOrderObserver();
 
-    void startOrderScanner();
+    long getIngestionRate();
+
+    /**
+     * set the ingestion rate of order.
+     * @param timePerOneOrder   millisecond
+     */
+    void setIngestionRate(long timePerOneOrder);
+
+    Flux<Order> startOrderScanner();
 }

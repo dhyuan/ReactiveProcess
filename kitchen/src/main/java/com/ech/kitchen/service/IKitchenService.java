@@ -14,6 +14,10 @@ import com.ech.order.mo.Order;
  */
 public interface IKitchenService {
 
+    void setShelfChoiceStrategy(IShelfSelectStrategy strategy);
+
+    void setOrderValueCalculateStrategy(IOrderOnShelfTTLCalculateStrategy strategy);
+
     /**
      * After this method is called, the kitchen begin to receive orders.
      *

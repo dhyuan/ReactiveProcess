@@ -5,7 +5,11 @@ import com.ech.order.IOrderScanner;
 import com.ech.order.mo.Order;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -20,10 +24,18 @@ import java.util.Set;
 import static java.time.Duration.ofMillis;
 
 @Component
+@PropertySource("classpath:order_service.properties")
 @Slf4j
 public class OrderFileScanner implements IOrderScanner {
 
+    @Getter
+    @Setter
     private String orderFile;
+
+    @Value("${order.ingestion.rate:2000}")
+    @Getter
+    @Setter
+    private long ingestionRate;
 
     private Set<IOrderObserver> orderObserverSet = new HashSet<>();
 
@@ -51,6 +63,13 @@ public class OrderFileScanner implements IOrderScanner {
         return orders;
     }
 
+    @Override
+    public Flux<Order> readOrderAsFlux() {
+        return Flux.interval(ofMillis(ingestionRate))
+                .zipWithIterable(readAllOrders())
+                .map(t -> t.getT2());
+    }
+
     public void registerOrderObserver(IOrderObserver orderObserver) {
         orderObserverSet.add(orderObserver);
         log.info("A subscriber registered on order receiver.");
@@ -67,22 +86,13 @@ public class OrderFileScanner implements IOrderScanner {
     }
 
     @Override
-    public void startOrderScanner() {
+    public Flux<Order> startOrderScanner() {
         log.info("Begin to scan the order file.");
-        final Flux<Order> orderFlux = Flux.interval(ofMillis(10))
-                .zipWithIterable(readAllOrders())
-                .map(t -> t.getT2());
+        final Flux<Order> orderFlux = readOrderAsFlux();
         for (IOrderObserver observer : orderObserverSet) {
             orderFlux.subscribe(observer);
         }
-    }
-
-    public String getOrderFile() {
-        return orderFile;
-    }
-
-    public void setOrderFile(String orderFile) {
-        this.orderFile = orderFile;
+        return orderFlux;
     }
 
     private File findOrderFile() throws Exception {

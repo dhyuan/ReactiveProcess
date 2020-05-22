@@ -1,7 +1,6 @@
 package com.ech.kitchen.service.impl;
 
 import com.ech.order.IOrderObserver;
-import com.ech.order.impl.OrderObserverAdapter;
 import com.ech.order.mo.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
@@ -15,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class KitchenOrderObserver extends OrderObserverAdapter<Order> {
+public class KitchenOrderObserver implements IOrderObserver<Order> {
 
     @Value("${kitchen.order.poll.amount.onetime:1}")
     private static long ORDER_PULL_TIMEOUT = 1;
@@ -32,7 +31,7 @@ public class KitchenOrderObserver extends OrderObserverAdapter<Order> {
     @Override
     public void beginObserve() {
         if (!isObserving) {
-            log.info("Kitchen begin to receive orders as much as possible.");
+            log.info("Kitchen begin to receive orders ...");
             orderSubscription.request(ORDER_AMOUNT_IN_ONE_REQ);
             isObserving = true;
         } else {
@@ -85,7 +84,8 @@ public class KitchenOrderObserver extends OrderObserverAdapter<Order> {
     @Override
     public void onNext(Order order) {
         log.debug("A new order coming. {}", order);
-        internalOrderQueue.offerLast(order);
+        final boolean isPutInQueue = internalOrderQueue.offerLast(order);
+        log.info("A new order was put into kitchen queue.");
         orderSubscription.request(ORDER_AMOUNT_IN_ONE_REQ);
     }
 
@@ -96,7 +96,6 @@ public class KitchenOrderObserver extends OrderObserverAdapter<Order> {
 
     @Override
     public void onComplete() {
-        log.info("All order are received.");
-        orderSubscription.cancel();
+        log.info("All order are received in kitchen.");
     }
 }
