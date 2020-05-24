@@ -29,7 +29,6 @@ public class Kitchen {
     @Value("${kitchen.shelf.capacity.default}")
     private int shelfDefaultCapacity;
 
-
     private final Map<ShelfTemperatureEnum, Shelf> pickupArea = new ConcurrentHashMap<>();
 
     @Autowired

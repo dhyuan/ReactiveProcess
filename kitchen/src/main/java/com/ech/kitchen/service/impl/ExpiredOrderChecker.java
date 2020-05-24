@@ -1,21 +1,32 @@
 package com.ech.kitchen.service.impl;
 
 import com.ech.kitchen.mo.Shelf;
-import com.ech.kitchen.service.IPickupAreaRecycleService;
+import com.ech.kitchen.service.IExpiredOrderCheckingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @Slf4j
-public class PickupAreaRecycleService implements IPickupAreaRecycleService {
+public class ExpiredOrderChecker implements IExpiredOrderCheckingService {
+
+    @Value("${kitchen.order.checker.delay:2000}")
+    private long checkerInitialDelay;
+
+    @Value("${kitchen.order.checker.period:5000}")
+    private long checkerPeriod;
+
 
     private ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    private AtomicLong expiredOrderCounter = new AtomicLong(0);
 
     @Override
     public void workOn(Collection<Shelf> shelves) {
@@ -33,14 +44,18 @@ public class PickupAreaRecycleService implements IPickupAreaRecycleService {
                                 && cookedOrder.getOrderValue().get() <= 0)
                         .forEach(cookedOrder -> {
                             cookedOrder.getShelf().remove(cookedOrder);
-                            log.info("{} is recycled.", cookedOrder);
+                            final long count = expiredOrderCounter.incrementAndGet();
+                            log.info("{} is recycled. Total dropped ", cookedOrder, count);
                         });
             } catch (Throwable t) {
                 log.error("There something wrong with cooked order recycle!", t);
                 t.printStackTrace();
             }
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, checkerInitialDelay, checkerPeriod, TimeUnit.MILLISECONDS);
     }
 
-
+    @Override
+    public long processedExpiredOrderNumb() {
+        return expiredOrderCounter.longValue();
+    }
 }

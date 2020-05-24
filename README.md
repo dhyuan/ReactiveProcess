@@ -18,6 +18,7 @@ java -jar ./kitchen/target/kitchen-0.0.1-SNAPSHOT-exec.jar \
 mvn spring-boot:run -pl kitchen -Dspring-boot.run.arguments="\
 --order.file.name=/Users/dahui/tmp/orders.json \
 --order.ingestion.rate=2000 \
+--kitchen.order.checker.period=5000 \
 --courier.sleep.min=2000 --courier.sleep.max=6000"
 
 ### 4) Setting

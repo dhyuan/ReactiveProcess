@@ -4,7 +4,9 @@ import com.ech.kitchen.mo.Shelf;
 
 import java.util.Collection;
 
-public interface IPickupAreaRecycleService {
+public interface IExpiredOrderCheckingService {
 
     void workOn(Collection<Shelf> shelves);
+
+    long processedExpiredOrderNumb();
 }

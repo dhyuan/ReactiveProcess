@@ -4,8 +4,8 @@ import com.ech.kitchen.mo.CookedOrder;
 import com.ech.kitchen.mo.Kitchen;
 import com.ech.kitchen.service.ICookedOrderPickStrategy;
 import com.ech.kitchen.service.ICookedOrderProvider;
+import com.ech.kitchen.service.IExpiredOrderCheckingService;
 import com.ech.kitchen.service.IKitchenService;
-import com.ech.kitchen.service.IPickupAreaRecycleService;
 import com.ech.kitchen.service.IShelfSelectStrategy;
 import com.ech.order.IOrderObserver;
 import com.ech.order.mo.Order;
@@ -33,7 +33,7 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
     private ICookedOrderPickStrategy cookedOrderPickStrategy;
 
     @Autowired
-    private IPickupAreaRecycleService pickupAreaRecycleService;
+    private IExpiredOrderCheckingService pickupAreaRecycleService;
 
     private AtomicLong counter = new AtomicLong();
 
@@ -95,7 +95,7 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
     }
 
     @Override
-    public void setPickupAreaCleanService(IPickupAreaRecycleService pickupAreaRecycleService) {
+    public void setPickupAreaCleanService(IExpiredOrderCheckingService pickupAreaRecycleService) {
         this.pickupAreaRecycleService = pickupAreaRecycleService;
     }
 
@@ -116,6 +116,12 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
 
     @Override
     public Optional<CookedOrder> provideCookedOrder() {
-        return cookedOrderPickStrategy.pickupFrom(kitchen.getShelvesInPickupArea());
+        final Optional<CookedOrder> cookedOrder = cookedOrderPickStrategy.pickupFrom(kitchen.getShelvesInPickupArea());
+        if (cookedOrder.isPresent()) {
+            log.info("Pull out an order from shelf. orderId:{}", cookedOrder.get().getOrder().getId());
+        } else {
+            log.info("There is no order on kitchen shelves.");
+        }
+        return cookedOrder;
     }
 }

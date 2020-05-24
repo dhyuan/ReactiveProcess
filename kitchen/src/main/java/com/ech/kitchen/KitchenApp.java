@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
-import java.util.concurrent.Semaphore;
 
 @SpringBootApplication
 @PropertySource("classpath:/application.properties")
@@ -55,7 +54,7 @@ public class KitchenApp {
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
-            orderScanner.setIngestionRate(ingestionRate);  // set ingestion rate as 10 millisecond to seed up the test.
+            orderScanner.setIngestionRate(ingestionRate);
             orderScanner.registerOrderObserver(kitchenOrderReceiver);
             orderScanner.startOrderScanner();
 

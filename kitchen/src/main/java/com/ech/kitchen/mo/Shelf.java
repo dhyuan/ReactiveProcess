@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class Shelf {
@@ -109,6 +108,7 @@ public class Shelf {
         }
         return new SimpleEntry(removedOrders, unRemovedOrders);
     }
+
     public synchronized boolean remove(CookedOrder cookedOrder) {
         if (cookedOrderQueue.size() == 0) {
             log.warn("The {} shelf is empty, no cookedOrder available to remove.", allowableTemperature);
@@ -136,7 +136,6 @@ public class Shelf {
         }
     }
 
-
     public synchronized int currentOrderNumb() {
         return cookedOrderQueue.size();
     }
@@ -149,24 +148,7 @@ public class Shelf {
     public String toString() {
         StringBuilder sb = new StringBuilder("Shelf: ").append(allowableTemperature.name())
                 .append(" availableSpace:").append(availableSpace())
-                .append(" ").append(currentOrderNumb()).append("/").append(maxCapacity);
-        return sb.toString();
-    }
-
-
-    public String detailInfo() {
-        StringBuilder sb = new StringBuilder("Shelf ")
-                .append(allowableTemperature.name());
-        if (CollectionUtils.isEmpty(cookedOrderQueue)) {
-            sb.append(" has no order.");
-        } else {
-            sb.append(" has ").append(cookedOrderQueue.size()).append(" orders.\n");
-            for (CookedOrder order : cookedOrderQueue) {
-                sb.append("    ");
-                sb.append(order.toString());
-                sb.append("\n");
-            }
-        }
+                .append(" usage:").append(currentOrderNumb()).append("/").append(maxCapacity);
         return sb.toString();
     }
 }

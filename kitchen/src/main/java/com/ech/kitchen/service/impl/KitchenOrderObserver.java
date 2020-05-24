@@ -85,7 +85,7 @@ public class KitchenOrderObserver implements IOrderObserver<Order> {
     public void onNext(Order order) {
         log.debug("A new order coming. {}", order);
         final boolean isPutInQueue = internalOrderQueue.offerLast(order);
-        log.info("A new order was put into kitchen queue.");
+        log.info("A new order was accepted by kitchen.");
         orderSubscription.request(ORDER_AMOUNT_IN_ONE_REQ);
     }
 

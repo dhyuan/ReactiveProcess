@@ -16,7 +16,7 @@ public interface IKitchenService {
 
     void setShelfChoiceStrategy(IShelfSelectStrategy strategy);
 
-    void setPickupAreaCleanService(IPickupAreaRecycleService pickupAreaCleanService);
+    void setPickupAreaCleanService(IExpiredOrderCheckingService pickupAreaCleanService);
 
     /**
      * After this method is called, the kitchen begin to receive orders.

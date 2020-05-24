@@ -5,7 +5,6 @@ import com.ech.kitchen.mo.Shelf;
 import com.ech.kitchen.service.ICookedOrderPickStrategy;
 import org.springframework.stereotype.Component;
 
-import java.time.chrono.MinguoChronology;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -14,7 +13,7 @@ import java.util.stream.IntStream;
 @Component
 public class CookedOrderRandomPicker implements ICookedOrderPickStrategy {
 
-    private final Random random = new Random();
+    private final Random rand = new Random();
 
     @Override
     public Optional<CookedOrder> pickupFrom(List<Shelf> shelves) {
@@ -29,7 +28,6 @@ public class CookedOrderRandomPicker implements ICookedOrderPickStrategy {
     }
 
     public int[] shuffleIndex(int size) {
-        Random rand = new Random();
         final int[] indexes = IntStream.range(0, size).toArray();
         for (int i = 0; i < size; i++) {
             swapAt(indexes, i, rand.nextInt(size));
