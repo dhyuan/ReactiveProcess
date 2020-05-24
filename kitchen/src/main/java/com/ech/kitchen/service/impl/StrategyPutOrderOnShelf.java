@@ -5,16 +5,14 @@ import com.ech.kitchen.mo.Shelf;
 import com.ech.kitchen.mo.ShelfFullException;
 import com.ech.kitchen.mo.ShelfTemperatureEnum;
 import com.ech.kitchen.service.IShelfSelectStrategy;
-import com.ech.order.mo.Order;
 import com.ech.order.mo.OrderTemperatureEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Component;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.ech.kitchen.mo.ShelfTemperatureEnum.Any;
@@ -32,6 +30,7 @@ public class StrategyPutOrderOnShelf implements IShelfSelectStrategy {
         final Shelf shelf = pickupArea.get(matchedShelfTemp);
         try {
             shelf.add(cookedOrder);
+            log.info("The {} was put on the {}", cookedOrder, shelf);
         } catch (ShelfFullException e) {
             log.warn("{} is full. Try to put on the overflow shelf.", shelf);
             putOrderOnOverflowShelf(cookedOrder, pickupArea);
@@ -55,10 +54,9 @@ public class StrategyPutOrderOnShelf implements IShelfSelectStrategy {
                                                   Shelf overflowShelf) {
         reassignOrdersOnOverFlowShelf(overflowShelf, pickupArea);
 
-        if (overflowShelf.availableSpace() < 1) {
-            log.info("No cookedOrder is moved to other shelf from overflow shelf. Drop an cookedOrder on overflow shelf randomly");
-            final int rndIndex = new Random().nextInt(overflowShelf.getMaxCapacity());
-            overflowShelf.remove(rndIndex);
+        if (overflowShelf.availableSpace() == 0) {
+            log.info("No cookedOrder is moved to other shelf from overflow shelf. Drop a cookedOrder on overflow shelf randomly");
+            overflowShelf.removeOneOrderRandomly();
         }
 
         final boolean isAdded = overflowShelf.addWithoutException(cookedOrder);
@@ -71,19 +69,39 @@ public class StrategyPutOrderOnShelf implements IShelfSelectStrategy {
 
     private void reassignOrdersOnOverFlowShelf(Shelf overflowShelf, Map<ShelfTemperatureEnum, Shelf> pickupArea) {
         log.info("Try to reassign the orders on overflow shelf to other shelves");
-        final Map<OrderTemperatureEnum, List<CookedOrder>> ordersMap =
-                overflowShelf.getCookedOrders().stream().collect(Collectors.groupingBy(o -> o.getOrder().getTemp()));
+        final Map<OrderTemperatureEnum, List<CookedOrder>> ordersMapOnOverflowShelf =
+                overflowShelf.getCookedOrderQueue().stream().collect(Collectors.groupingBy(o -> o.getOrder().getTemp()));
 
-        for (OrderTemperatureEnum orderTemp : ordersMap.keySet()) {
-            final Shelf shelf = pickupArea.get(mapToShelfTemperature(orderTemp));
-            final List<CookedOrder> orders = ordersMap.get(orderTemp);
-            if (CollectionUtils.isNotEmpty(orders)) {
-                final ImmutablePair<List<CookedOrder>, List<CookedOrder>> result = shelf.add(orders);
-                log.info("Moved {} order from overflow shelf to {}.", result.left.size(), shelf);
+        for (OrderTemperatureEnum orderTemp : ordersMapOnOverflowShelf.keySet()) {
+            try {
+                final Shelf singleTempShelf = pickupArea.get(mapToShelfTemperature(orderTemp));
+                final List<CookedOrder> ordersOnOverflowShelf = ordersMapOnOverflowShelf.get(orderTemp);
+                moveOrdersFromOverflowToSingleTemperatureShelf(overflowShelf, singleTempShelf, ordersOnOverflowShelf);
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Got error while move orders form overflow to single temperature shelf.", e);
             }
         }
     }
 
+    private void moveOrdersFromOverflowToSingleTemperatureShelf(Shelf overflowShelf, Shelf singleTempShelf,
+                                                                List<CookedOrder> ordersOnOverflowShelf) {
+        if (CollectionUtils.isEmpty(ordersOnOverflowShelf)) {
+            return;
+        }
+        synchronized (singleTempShelf) {
+            synchronized (overflowShelf) {
+                final SimpleEntry<List<CookedOrder>, List<CookedOrder>> movedTo = singleTempShelf.add(ordersOnOverflowShelf);
+                log.info("Moved {} order from overflow to singleTempShelf {}.", movedTo.getKey(), singleTempShelf);
+                if (CollectionUtils.isNotEmpty(movedTo.getKey())) {
+                    final SimpleEntry<List<CookedOrder>, List<CookedOrder>> movedFrom = overflowShelf.remove(movedTo.getKey());
+                    if (CollectionUtils.isEmpty(movedFrom.getKey()) || movedFrom.getKey().size() != movedTo.getKey().size()) {
+                        log.error("There's a transaction problem !!!!!!! {}", movedFrom.getKey());
+                    }
+                }
+            }
+        }
+    }
 
     private ShelfTemperatureEnum mapToShelfTemperature(OrderTemperatureEnum orderTemp) {
         ShelfTemperatureEnum shelfTemp = null;

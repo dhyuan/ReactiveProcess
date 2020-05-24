@@ -1,5 +1,6 @@
 package com.ech.kitchen;
 
+import com.ech.kitchen.service.ICookedOrderPickStrategy;
 import com.ech.kitchen.service.IKitchenService;
 import com.ech.order.IOrderObserver;
 import com.ech.order.IOrderScanner;
@@ -32,11 +33,12 @@ public class KitchenSystemIT extends KitchenBaseIT {
     @Autowired
     public IKitchenService kitchenService;
 
+
     private final static int EXPECTED_ORDER_AMOUNT = 132;
 
     @Test
     public void testSubscribe() throws InterruptedException {
-        final int ingestionRate = 2;
+        final int ingestionRate = 60;
 
         orderScanner.setIngestionRate(ingestionRate);  // set ingestion rate as 10 millisecond to seed up the test.
         orderScanner.registerOrderObserver(kitchenOrderReceiver);

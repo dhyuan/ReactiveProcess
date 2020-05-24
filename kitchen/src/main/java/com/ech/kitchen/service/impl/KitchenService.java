@@ -2,8 +2,10 @@ package com.ech.kitchen.service.impl;
 
 import com.ech.kitchen.mo.CookedOrder;
 import com.ech.kitchen.mo.Kitchen;
+import com.ech.kitchen.service.ICookedOrderPickStrategy;
+import com.ech.kitchen.service.ICookedOrderProvider;
 import com.ech.kitchen.service.IKitchenService;
-import com.ech.kitchen.service.IOrderOnShelfTTLCalculateStrategy;
+import com.ech.kitchen.service.IPickupAreaRecycleService;
 import com.ech.kitchen.service.IShelfSelectStrategy;
 import com.ech.order.IOrderObserver;
 import com.ech.order.mo.Order;
@@ -19,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Slf4j
-public class KitchenService implements IKitchenService {
+public class KitchenService implements IKitchenService, ICookedOrderProvider {
 
     @Autowired
     private IOrderObserver<Order> orderObserver;
@@ -28,11 +30,16 @@ public class KitchenService implements IKitchenService {
     private IShelfSelectStrategy shelfChoicer;
 
     @Autowired
-    private IOrderOnShelfTTLCalculateStrategy orderValueCalculator;
+    private ICookedOrderPickStrategy cookedOrderPickStrategy;
+
+    @Autowired
+    private IPickupAreaRecycleService pickupAreaRecycleService;
 
     private AtomicLong counter = new AtomicLong();
 
     private Executor singleExecutor = Executors.newSingleThreadExecutor();
+
+    private Executor couriers = Executors.newFixedThreadPool(3);
 
     public IOrderObserver<Order> getOrderObserver() {
         return orderObserver;
@@ -52,7 +59,10 @@ public class KitchenService implements IKitchenService {
         isOpen = true;
         this.orderObserver = orderObserver;
         this.orderObserver.beginObserve();
+
         processIncomingOrders();
+
+        pickupAreaRecycleService.workOn(kitchen.getShelvesInPickupArea());
     }
 
     private void processIncomingOrders() {
@@ -85,8 +95,8 @@ public class KitchenService implements IKitchenService {
     }
 
     @Override
-    public void setOrderValueCalculateStrategy(IOrderOnShelfTTLCalculateStrategy strategy) {
-        orderValueCalculator = strategy;
+    public void setPickupAreaCleanService(IPickupAreaRecycleService pickupAreaRecycleService) {
+        this.pickupAreaRecycleService = pickupAreaRecycleService;
     }
 
     @Override
@@ -104,4 +114,8 @@ public class KitchenService implements IKitchenService {
         orderObserver.stopObserve();
     }
 
+    @Override
+    public Optional<CookedOrder> provideCookedOrder() {
+        return cookedOrderPickStrategy.pickupFrom(kitchen.getShelvesInPickupArea());
+    }
 }

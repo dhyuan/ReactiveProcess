@@ -1,87 +1,155 @@
 package com.ech.kitchen.mo;
 
-import com.ech.order.mo.Order;
-import com.google.common.collect.Lists;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-@Builder
 @Slf4j
-@Data
 public class Shelf {
 
-    private int maxCapacity;
+    @Getter
+    private final int maxCapacity;
 
+    @Getter
     private final ShelfTemperatureEnum allowableTemperature;
 
-    private final List<CookedOrder> cookedOrders = new ArrayList<>();
+    @Getter
+    private final BlockingQueue<CookedOrder> cookedOrderQueue;
 
-    public synchronized void add(CookedOrder cookedOrder) throws ShelfFullException {
-        if (cookedOrders.size() == maxCapacity) {
-            String msg = String.format("Exception: %s is full. Cannot accept cookedOrder %s.", this, cookedOrder);
+    public Shelf(ShelfTemperatureEnum allowableTemperature, int maxCapacity) {
+        this.allowableTemperature = allowableTemperature;
+        this.maxCapacity = maxCapacity;
+        cookedOrderQueue = new LinkedBlockingQueue<>(maxCapacity);
+    }
+
+    public synchronized Optional<CookedOrder> pullOrder() {
+        return Optional.ofNullable(cookedOrderQueue.poll());
+    }
+
+    public synchronized boolean add(CookedOrder cookedOrder) throws ShelfFullException {
+        if (cookedOrderQueue.size() == maxCapacity) {
+            String msg = String.format("Exception: Shelf %s is full. Cannot accept %s.",
+                    this.allowableTemperature, cookedOrder);
             log.error(msg);
             throw new ShelfFullException(msg);
         }
-        cookedOrders.add(cookedOrder);
+
+        final boolean isAdded = cookedOrderQueue.add(cookedOrder);
+        setShelfInfoForOrder(cookedOrder, isAdded);
+        return isAdded;
     }
 
-    public synchronized boolean addWithoutException(CookedOrder order) {
-        if (cookedOrders.size() == maxCapacity) {
-            log.error("Exception: %s is full. Cannot accept order {}.", this, order);
+    private void setShelfInfoForOrder(CookedOrder cookedOrder, boolean isAdded) {
+        if (isAdded) {
+            cookedOrder.setShelf(this);
+            cookedOrder.setOrderOnShelfTime(Instant.now());
+            log.info("Put {} on {}.", cookedOrder, this);
+        } else {
+            log.error("Cannot put {} on {}.", cookedOrder, this);
+        }
+    }
+
+    public synchronized boolean addWithoutException(CookedOrder cookedOrder) {
+        if (cookedOrderQueue.size() == maxCapacity) {
+            log.error("Exception: %s is full. Cannot accept order {}.", this, cookedOrder);
             return false;
         }
-        return cookedOrders.add(order);
+        final boolean isAdded = cookedOrderQueue.add(cookedOrder);
+        setShelfInfoForOrder(cookedOrder, isAdded);
+        return isAdded;
     }
 
-    public synchronized ImmutablePair<List<CookedOrder>, List<CookedOrder>> add(List<CookedOrder> cookedOrders) {
-        final int availableSpace = maxCapacity - this.cookedOrders.size();
-        if (availableSpace >= cookedOrders.size()) {
-            this.cookedOrders.addAll(cookedOrders);
-            return new ImmutablePair(cookedOrders, Lists.newArrayList());
+    public synchronized SimpleEntry<List<CookedOrder>, List<CookedOrder>> add(List<CookedOrder> cookedOrders) {
+        final int availableSpace = availableSpace();
+        if (availableSpace == 0) {
+            return new SimpleEntry<>(new ArrayList<>(), cookedOrders);
+        } else if (availableSpace >= cookedOrders.size()) {
+            this.cookedOrderQueue.addAll(cookedOrders);
+            return new SimpleEntry(cookedOrders, new ArrayList<>());
         }
 
         final List<CookedOrder> ordersToAdd = cookedOrders.subList(0, availableSpace);
         final List<CookedOrder> ordersNotAdd = cookedOrders.subList(availableSpace, cookedOrders.size());
-        this.cookedOrders.addAll(ordersToAdd);
-        return new ImmutablePair<>(ordersToAdd, ordersNotAdd);
+        final List<CookedOrder> ordersAdded = new ArrayList<>();
+        ordersToAdd.stream().forEach(cookedOrder -> {
+            final boolean isAdded = addWithoutException(cookedOrder);
+            if (isAdded) {
+                ordersAdded.add(cookedOrder);
+            } else {
+                ordersNotAdd.add(cookedOrder);
+            }
+        });
+        return new SimpleEntry<>(ordersAdded, ordersNotAdd);
     }
 
-    public synchronized void remove(CookedOrder cookedOrder) {
-        if (cookedOrders.size() == 0) {
+    public synchronized SimpleEntry<List<CookedOrder>, List<CookedOrder>> remove(List<CookedOrder> cookedOrders) {
+        if (CollectionUtils.isEmpty(cookedOrders)) {
+            return null;
+        }
+        List<CookedOrder> removedOrders = new ArrayList<>();
+        List<CookedOrder> unRemovedOrders = new ArrayList<>();
+        for (CookedOrder cookedOrder : cookedOrders) {
+            final boolean isRemoved = remove(cookedOrder);
+            if (isRemoved) {
+                removedOrders.add(cookedOrder);
+            } else {
+                unRemovedOrders.add(cookedOrder);
+            }
+        }
+        return new SimpleEntry(removedOrders, unRemovedOrders);
+    }
+    public synchronized boolean remove(CookedOrder cookedOrder) {
+        if (cookedOrderQueue.size() == 0) {
             log.warn("The {} shelf is empty, no cookedOrder available to remove.", allowableTemperature);
-            return;
+            return false;
         }
-        cookedOrders.remove(cookedOrder);
+        final boolean isRemoved = cookedOrderQueue.remove(cookedOrder);
+        if (isRemoved) {
+            log.info("{} is removed from {}", cookedOrder, this);
+        } else {
+            log.error("{} cannot be removed from {}", cookedOrder, this);
+        }
+        return isRemoved;
     }
 
-    public synchronized void remove(int index) {
-        if (index < 0 || index >= maxCapacity) {
-            log.error("Not right index {} for {}", index, this);
-            return;
+    public synchronized void removeOneOrderRandomly() {
+        int rndIndex = new Random().nextInt(maxCapacity);
+        final Iterator<CookedOrder> iterator = cookedOrderQueue.iterator();
+        while (iterator.hasNext()) {
+            if (rndIndex-- <= 0) {
+                final CookedOrder orderToRemove = iterator.next();
+                cookedOrderQueue.remove(orderToRemove);
+                log.info("{} is removed from {}", orderToRemove, this);
+                return;
+            }
         }
-        cookedOrders.remove(index);
     }
 
 
     public synchronized int currentOrderNumb() {
-        return cookedOrders.size();
+        return cookedOrderQueue.size();
     }
 
     public synchronized int availableSpace() {
-        return maxCapacity - cookedOrders.size();
+        return maxCapacity - cookedOrderQueue.size();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Shelf: ").append(allowableTemperature.name())
-                .append(" maxCapacity ").append(maxCapacity);
+                .append(" availableSpace:").append(availableSpace())
+                .append(" ").append(currentOrderNumb()).append("/").append(maxCapacity);
         return sb.toString();
     }
 
@@ -89,11 +157,11 @@ public class Shelf {
     public String detailInfo() {
         StringBuilder sb = new StringBuilder("Shelf ")
                 .append(allowableTemperature.name());
-        if (CollectionUtils.isEmpty(cookedOrders)) {
+        if (CollectionUtils.isEmpty(cookedOrderQueue)) {
             sb.append(" has no order.");
         } else {
-            sb.append(" has ").append(cookedOrders.size()).append(" orders.\n");
-            for (CookedOrder order : cookedOrders) {
+            sb.append(" has ").append(cookedOrderQueue.size()).append(" orders.\n");
+            for (CookedOrder order : cookedOrderQueue) {
                 sb.append("    ");
                 sb.append(order.toString());
                 sb.append("\n");

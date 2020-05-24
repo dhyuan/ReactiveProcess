@@ -24,7 +24,7 @@ public class ShelfTest {
         final int maxCapacity = 10;
         final int orderNumb = 3;
 
-        Shelf shelf = new Shelf(maxCapacity, Hot);
+        Shelf shelf = new Shelf(Hot, maxCapacity);
         final Map<Boolean, Long> resultStatusCount = IntStream.range(0, orderNumb)
                 .mapToObj(intToCookedOrderFunction())
                 .map(addOrderIntoShelf(shelf)).collect(Collectors.groupingBy(identity(), counting()));
@@ -44,7 +44,7 @@ public class ShelfTest {
         final int orderNumb = 12;
         final int expectedFailureTimes = orderNumb - maxCapacity;
 
-        Shelf shelf = new Shelf(maxCapacity, Hot);
+        Shelf shelf = new Shelf(Hot, maxCapacity);
         final Map<Boolean, Long> resultStatusCount = IntStream.range(0, orderNumb)
                 .mapToObj(intToCookedOrderFunction())
                 .map(addOrderIntoShelf(shelf))
@@ -58,7 +58,7 @@ public class ShelfTest {
     @Test
     public void testAddOrderExceedMaxThrowException() {
         final int maxCapacity = 10;
-        Shelf shelf = new Shelf(maxCapacity, Hot);
+        Shelf shelf = new Shelf(Hot, maxCapacity);
         addSomeOrderInShelf(maxCapacity, shelf);
 
         assertThrows(ShelfFullException.class, () -> shelf.add(new CookedOrder(new Order("hotOrder11", hot))));
@@ -81,7 +81,7 @@ public class ShelfTest {
         final int maxCapacity = 10;
         CookedOrder cookedOrder1 = new CookedOrder(new Order("hotOrder1", hot));
         CookedOrder cookedOrder2 = new CookedOrder(new Order("hotOrder2", hot));
-        Shelf shelf = new Shelf(maxCapacity, Hot);
+        Shelf shelf = new Shelf(Hot, maxCapacity);
 
         assertEquals(0, shelf.currentOrderNumb());
 

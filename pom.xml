@@ -26,10 +26,9 @@
 		<jackson.version>2.10.4</jackson.version>
 		<reactor.version>3.3.5.RELEASE</reactor.version>
 		<apache.common.util.version>4.4</apache.common.util.version>
-		<apache.common.lang.version>3.10</apache.common.lang.version>
-		<guava.version>29.0-jre</guava.version>
-		<lombok.version>1.18.12</lombok.version> 	<!-- edge-SNAPSHOT version support Lombok @Data in module. -->
-		<surefire.version>2.22.2</surefire.version> 	<!-- for Junit5, the verison 2.22.2 is workable. -->
+		<lombok.version>1.18.12</lombok.version>
+<!--		<lombok.version>edge-SNAPSHOT</lombok.version>-->
+		<surefire.version>2.22.2</surefire.version> 	<!-- for Junit5, the version 2.22.2 is workable. -->
 	</properties>
 
 	<dependencies>
@@ -75,6 +74,7 @@
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct-processor</artifactId>
 			<version>1.3.0.Final</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor</groupId>
@@ -90,16 +90,6 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 			<version>${apache.common.util.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>${apache.common.lang.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -127,11 +117,16 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<annotationProcessorPaths>
-						<dependency>
+						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 							<version>${lombok.version}</version>
-						</dependency>
+						</path>
+<!--						<dependency>-->
+<!--							<groupId>org.projectlombok</groupId>-->
+<!--							<artifactId>lombok</artifactId>-->
+<!--							<version>${lombok.version}</version>-->
+<!--						</dependency>-->
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>

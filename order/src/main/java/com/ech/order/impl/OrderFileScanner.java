@@ -24,17 +24,18 @@ import java.util.Set;
 import static java.time.Duration.ofMillis;
 
 @Component
-@PropertySource("classpath:order_service.properties")
+@PropertySource("classpath:/application.properties")
 @Slf4j
 public class OrderFileScanner implements IOrderScanner {
 
     @Getter
     @Setter
+    @Value("${order.file.name:order.json}")
     private String orderFile;
 
-    @Value("${order.ingestion.rate:2000}")
     @Getter
     @Setter
+    @Value("${order.ingestion.rate:2000}")
     private long ingestionRate;
 
     private Set<IOrderObserver> orderObserverSet = new HashSet<>();
@@ -87,7 +88,7 @@ public class OrderFileScanner implements IOrderScanner {
 
     @Override
     public Flux<Order> startOrderScanner() {
-        log.info("Begin to scan the order file.");
+        log.info("Begin to scan the order file {}.", orderFile);
         final Flux<Order> orderFlux = readOrderAsFlux();
         for (IOrderObserver observer : orderObserverSet) {
             orderFlux.subscribe(observer);
@@ -96,9 +97,13 @@ public class OrderFileScanner implements IOrderScanner {
     }
 
     private File findOrderFile() throws Exception {
-        String jsonFilePath = orderFile;
+        log.info("orderFile={}", orderFile);
+        String jsonFilePath = orderFile.trim();
         if (!orderFile.startsWith(File.separator)) {
-            final URL jsonFileURL = this.getClass().getModule().getClassLoader().getResource(orderFile);
+            URL jsonFileURL = this.getClass().getModule().getClassLoader().getResource(orderFile);
+            if (jsonFileURL == null) {
+                jsonFileURL = this.getClass().getClassLoader().getResource(orderFile);
+            }
             jsonFilePath = Paths.get(jsonFileURL.toURI()).toFile().getAbsolutePath();
         }
         final File jsonFile = Paths.get(jsonFilePath).toFile();
