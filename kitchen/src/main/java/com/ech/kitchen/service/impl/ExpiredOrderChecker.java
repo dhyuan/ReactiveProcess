@@ -2,6 +2,8 @@ package com.ech.kitchen.service.impl;
 
 import com.ech.kitchen.mo.Shelf;
 import com.ech.kitchen.service.IExpiredOrderCheckingService;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,16 +19,19 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class ExpiredOrderChecker implements IExpiredOrderCheckingService {
 
-    @Value("${kitchen.order.checker.delay:2000}")
+    @Getter @Setter
+    @Value("${kitchen.order.expire.checker.delay:2000}")
     private long checkerInitialDelay;
 
-    @Value("${kitchen.order.checker.period:5000}")
+    @Getter @Setter
+    @Value("${kitchen.order.expire.checker.period:5000}")
     private long checkerPeriod;
 
 
     private ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     private AtomicLong expiredOrderCounter = new AtomicLong(0);
+    private AtomicLong failedCleanCounter = new AtomicLong(0);
 
     @Override
     public void workOn(Collection<Shelf> shelves) {
@@ -43,19 +48,29 @@ public class ExpiredOrderChecker implements IExpiredOrderCheckingService {
                                 && cookedOrder.getOrderValue().isPresent()
                                 && cookedOrder.getOrderValue().get() <= 0)
                         .forEach(cookedOrder -> {
-                            cookedOrder.getShelf().remove(cookedOrder);
-                            final long count = expiredOrderCounter.incrementAndGet();
-                            log.info("{} is recycled. Total dropped ", cookedOrder, count);
+                            final boolean isRemoved = cookedOrder.getShelf().remove(cookedOrder);
+                            if (isRemoved) {
+                                final long count = expiredOrderCounter.incrementAndGet();
+                                log.info("{} is recycled. Total dropped ", cookedOrder, count);
+                            } else {
+                                failedCleanCounter.incrementAndGet();
+                                log.error("Failed to remove {}", cookedOrder);
+                            }
                         });
             } catch (Throwable t) {
+                failedCleanCounter.incrementAndGet();
                 log.error("There something wrong with cooked order recycle!", t);
-                t.printStackTrace();
             }
         }, checkerInitialDelay, checkerPeriod, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public long processedExpiredOrderNumb() {
+    public long totalExpiredOrderNumb() {
         return expiredOrderCounter.longValue();
+    }
+
+    @Override
+    public long totalFailedCleanNumb() {
+        return failedCleanCounter.longValue();
     }
 }

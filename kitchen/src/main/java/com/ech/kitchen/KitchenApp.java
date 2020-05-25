@@ -30,9 +30,7 @@ public class KitchenApp {
 
     @Bean
     public IOrderScanner orderScanner() {
-        final IOrderScanner orderScanner = new OrderFileScanner(orderFileName);
-        orderScanner.setIngestionRate(ingestionRate);
-        return orderScanner;
+        return new OrderFileScanner(orderFileName, ingestionRate);
     }
 
     @Autowired

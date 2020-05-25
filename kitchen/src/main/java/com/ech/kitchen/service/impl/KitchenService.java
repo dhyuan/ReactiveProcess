@@ -33,13 +33,11 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
     private ICookedOrderPickStrategy cookedOrderPickStrategy;
 
     @Autowired
-    private IExpiredOrderCheckingService pickupAreaRecycleService;
+    private IExpiredOrderCheckingService expiredOrderCheckingService;
 
-    private AtomicLong counter = new AtomicLong();
+    private final AtomicLong incomingOrderCounter = new AtomicLong();
 
-    private Executor singleExecutor = Executors.newSingleThreadExecutor();
-
-    private Executor couriers = Executors.newFixedThreadPool(3);
+    private final Executor singleExecutor = Executors.newSingleThreadExecutor();
 
     public IOrderObserver<Order> getOrderObserver() {
         return orderObserver;
@@ -55,14 +53,14 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
         if (isOpen) {
             log.warn("The kitchen is opened already.");
         }
-
         isOpen = true;
+
         this.orderObserver = orderObserver;
         this.orderObserver.beginObserve();
 
         processIncomingOrders();
 
-        pickupAreaRecycleService.workOn(kitchen.getShelvesInPickupArea());
+        expiredOrderCheckingService.workOn(kitchen.getShelvesInPickupArea());
     }
 
     private void processIncomingOrders() {
@@ -72,17 +70,21 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
                 if (orderOptional.isEmpty()) {
                     log.warn("There's no order for a while. Let's wait ...");
                 } else {
+                    incomingOrderCounter.incrementAndGet();
                     final CookedOrder cookedOrder = new CookedOrder();
                     final Order order = orderOptional.get();
                     cookedOrder.setOrder(order);
 
-                    log.info("An order in kitchen ... {}", counter.incrementAndGet());
+                    log.info("An order in kitchen ...");
                     cookedOrder.setReceivedByKitchenTime(Instant.now());
 
                     log.info("Cook Done! {}", order);
                     cookedOrder.setCookedDoneTime(Instant.now());
 
                     shelfChoicer.putOrderOnShelf(kitchen.getPickupArea(), cookedOrder);
+
+
+                    log.info("Kitchen order summary: {}.", incomingOrderCounter.longValue());
                 }
             }
             log.info("Kitchen closed. isOpen={}", isOpen);
@@ -96,12 +98,12 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
 
     @Override
     public void setPickupAreaCleanService(IExpiredOrderCheckingService pickupAreaRecycleService) {
-        this.pickupAreaRecycleService = pickupAreaRecycleService;
+        this.expiredOrderCheckingService = pickupAreaRecycleService;
     }
 
     @Override
-    public long processedOrderAmount() {
-        return counter.longValue();
+    public long totalIncomingOrderNumb() {
+        return incomingOrderCounter.longValue();
     }
 
     @Override

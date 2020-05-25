@@ -8,5 +8,6 @@ public interface IExpiredOrderCheckingService {
 
     void workOn(Collection<Shelf> shelves);
 
-    long processedExpiredOrderNumb();
+    long totalExpiredOrderNumb();
+    long totalFailedCleanNumb();
 }

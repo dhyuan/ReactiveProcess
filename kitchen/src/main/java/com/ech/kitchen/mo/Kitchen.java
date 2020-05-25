@@ -11,21 +11,21 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
 public class Kitchen {
 
-    @Getter
-    @Setter
+    @Getter @Setter
     @Value("#{${kitchen.shelf.capacity}}")
     private Map<String, Integer> shelfCapacities;
 
-    @Getter
-    @Setter
+    @Getter @Setter
     @Value("${kitchen.shelf.capacity.default}")
     private int shelfDefaultCapacity;
 
@@ -45,6 +45,18 @@ public class Kitchen {
             pickupArea.put(shelfTemp, shelf);
             log.info("Add {} in kitchen.", shelf);
         }
+    }
+
+    public Map<ShelfTemperatureEnum, Integer> getNumbersOfOrderOnShelf() {
+        Map<ShelfTemperatureEnum, Integer> counters = new HashMap<>();
+        for (ShelfTemperatureEnum shelfTemp : ShelfTemperatureEnum.values()) {
+            counters.put(shelfTemp, pickupArea.get(shelfTemp).currentOrderNumb());
+        }
+        return counters;
+    }
+
+    public long getTotalNumberOfOrderOnShelf() {
+        return getNumbersOfOrderOnShelf().values().stream().reduce(0, (i1, i2) -> i1 + i2);
     }
 
     public Map<ShelfTemperatureEnum, Shelf> getPickupArea() {

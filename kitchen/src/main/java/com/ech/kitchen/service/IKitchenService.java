@@ -25,7 +25,7 @@ public interface IKitchenService {
      */
     void openKitchen(IOrderObserver<Order> orderObserver);
 
-    long processedOrderAmount();
+    long totalIncomingOrderNumb();
 
     /**
      * When this method is called, the kitchen will

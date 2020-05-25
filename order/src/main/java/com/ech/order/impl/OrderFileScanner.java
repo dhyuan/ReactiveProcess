@@ -46,6 +46,11 @@ public class OrderFileScanner implements IOrderScanner {
         this.orderFile = orderFile;
     }
 
+    public OrderFileScanner(String orderFile, long ingestionRate) {
+        this.orderFile = orderFile;
+        this.ingestionRate = ingestionRate;
+    }
+
     /**
      * Read the order json file and parsed its content as list of Order objects.
      *

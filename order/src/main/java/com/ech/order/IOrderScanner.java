@@ -22,10 +22,7 @@ public interface IOrderScanner {
 
     long getIngestionRate();
 
-    /**
-     * set the ingestion rate of order.
-     * @param timePerOneOrder   millisecond
-     */
+    void setOrderFile(String orderFile);
     void setIngestionRate(long timePerOneOrder);
 
     Flux<Order> startOrderScanner();

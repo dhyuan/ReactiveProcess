@@ -39,8 +39,7 @@ public class OrderFileScannerIT {
     final private static int THREE_SECONDS = 3000;
     @Test
     public void testOrderIngestionRateAtOneSecond() {
-        final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
-        orderScanner.setIngestionRate(TWO_SECONDS);
+        final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME, TWO_SECONDS);
 
         // There are 5 orders, one order needs 2 seconds.  Total time is 10 seconds.
         StepVerifier.withVirtualTime(() -> orderScanner.readOrderAsFlux())
@@ -56,8 +55,7 @@ public class OrderFileScannerIT {
 
     @Test
     public void testOrderIngestionRateAtThreeSecond() {
-        final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
-        orderScanner.setIngestionRate(THREE_SECONDS);
+        final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME, THREE_SECONDS);
         // There are 5 orders, one order needs 3 seconds.  Total time is 15 seconds.
         StepVerifier.withVirtualTime(() -> orderScanner.readOrderAsFlux())
                 .thenAwait(ofSeconds(3))

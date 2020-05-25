@@ -34,8 +34,6 @@ public class KitchenOrderObserver implements IOrderObserver<Order> {
             log.info("Kitchen begin to receive orders ...");
             orderSubscription.request(ORDER_AMOUNT_IN_ONE_REQ);
             isObserving = true;
-        } else {
-            log.info("Kitchen already opened.");
         }
     }
 
@@ -44,8 +42,6 @@ public class KitchenOrderObserver implements IOrderObserver<Order> {
         if (isObserving) {
             log.info("Kitchen closing ... not to receive orders ...");
             orderSubscription.cancel();
-        } else {
-            log.info("Kitchen already closed.");
         }
     }
 

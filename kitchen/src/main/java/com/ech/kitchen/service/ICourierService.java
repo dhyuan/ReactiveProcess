@@ -10,5 +10,8 @@ public interface ICourierService {
 
     Optional<CookedOrder> requestCookedOrder(ICookedOrderProvider provider);
 
+    long deliveryCount();
+    long deliveryErrorCount();
+
     void stop();
 }

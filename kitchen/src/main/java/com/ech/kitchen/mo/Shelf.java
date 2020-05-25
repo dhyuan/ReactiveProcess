@@ -2,13 +2,9 @@ package com.ech.kitchen.mo;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.Instant;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
@@ -26,6 +22,8 @@ public class Shelf {
     @Getter
     private final BlockingQueue<CookedOrder> cookedOrderQueue;
 
+
+
     public Shelf(ShelfTemperatureEnum allowableTemperature, int maxCapacity) {
         this.allowableTemperature = allowableTemperature;
         this.maxCapacity = maxCapacity;
@@ -39,7 +37,7 @@ public class Shelf {
     public synchronized boolean add(CookedOrder cookedOrder) throws ShelfFullException {
         if (cookedOrderQueue.size() == maxCapacity) {
             String msg = String.format("Exception: Shelf %s is full. Cannot accept %s.",
-                    this.allowableTemperature, cookedOrder);
+                    this.allowableTemperature.name(), cookedOrder);
             log.error(msg);
             throw new ShelfFullException(msg);
         }
@@ -69,46 +67,6 @@ public class Shelf {
         return isAdded;
     }
 
-    public synchronized SimpleEntry<List<CookedOrder>, List<CookedOrder>> add(List<CookedOrder> cookedOrders) {
-        final int availableSpace = availableSpace();
-        if (availableSpace == 0) {
-            return new SimpleEntry<>(new ArrayList<>(), cookedOrders);
-        } else if (availableSpace >= cookedOrders.size()) {
-            this.cookedOrderQueue.addAll(cookedOrders);
-            return new SimpleEntry(cookedOrders, new ArrayList<>());
-        }
-
-        final List<CookedOrder> ordersToAdd = cookedOrders.subList(0, availableSpace);
-        final List<CookedOrder> ordersNotAdd = cookedOrders.subList(availableSpace, cookedOrders.size());
-        final List<CookedOrder> ordersAdded = new ArrayList<>();
-        ordersToAdd.stream().forEach(cookedOrder -> {
-            final boolean isAdded = addWithoutException(cookedOrder);
-            if (isAdded) {
-                ordersAdded.add(cookedOrder);
-            } else {
-                ordersNotAdd.add(cookedOrder);
-            }
-        });
-        return new SimpleEntry<>(ordersAdded, ordersNotAdd);
-    }
-
-    public synchronized SimpleEntry<List<CookedOrder>, List<CookedOrder>> remove(List<CookedOrder> cookedOrders) {
-        if (CollectionUtils.isEmpty(cookedOrders)) {
-            return null;
-        }
-        List<CookedOrder> removedOrders = new ArrayList<>();
-        List<CookedOrder> unRemovedOrders = new ArrayList<>();
-        for (CookedOrder cookedOrder : cookedOrders) {
-            final boolean isRemoved = remove(cookedOrder);
-            if (isRemoved) {
-                removedOrders.add(cookedOrder);
-            } else {
-                unRemovedOrders.add(cookedOrder);
-            }
-        }
-        return new SimpleEntry(removedOrders, unRemovedOrders);
-    }
-
     public synchronized boolean remove(CookedOrder cookedOrder) {
         if (cookedOrderQueue.size() == 0) {
             log.warn("The {} shelf is empty, no cookedOrder available to remove.", allowableTemperature);
@@ -123,17 +81,20 @@ public class Shelf {
         return isRemoved;
     }
 
-    public synchronized void removeOneOrderRandomly() {
+    public synchronized Optional<CookedOrder> removeOneOrderRandomly() {
         int rndIndex = new Random().nextInt(maxCapacity);
         final Iterator<CookedOrder> iterator = cookedOrderQueue.iterator();
         while (iterator.hasNext()) {
             if (rndIndex-- <= 0) {
                 final CookedOrder orderToRemove = iterator.next();
-                cookedOrderQueue.remove(orderToRemove);
-                log.info("{} is removed from {}", orderToRemove, this);
-                return;
+                final boolean isRemoved = cookedOrderQueue.remove(orderToRemove);
+                if (isRemoved) {
+                    log.info("{} is removed from {}", orderToRemove, this);
+                    return Optional.of(orderToRemove);
+                }
             }
         }
+        return Optional.empty();
     }
 
     public synchronized int currentOrderNumb() {
