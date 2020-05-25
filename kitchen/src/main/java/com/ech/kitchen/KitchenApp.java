@@ -14,8 +14,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 @SpringBootApplication
 @PropertySource("classpath:/application.properties")
@@ -49,8 +55,22 @@ public class KitchenApp {
         SpringApplication.run(KitchenApp.class, args);
     }
 
+    private void showAppSettings() {
+
+    }
+
+    public void showAppProperties() {
+        Map<String, Object> map = new HashMap();
+        for(Iterator it = ((AbstractEnvironment) env).getPropertySources().iterator(); it.hasNext(); ) {
+            AbstractEnvironment propertySource = it.next();
+            log.info("===" + propertySource.toString());
+
+        }
+    }
+
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+        showAppProperties();
         return args -> {
             orderScanner.setIngestionRate(ingestionRate);
             orderScanner.registerOrderObserver(kitchenOrderReceiver);

@@ -20,7 +20,7 @@
 	<description>Demo project for CSS Engineering Challenge Homework</description>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>14</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<jackson.version>2.10.4</jackson.version>

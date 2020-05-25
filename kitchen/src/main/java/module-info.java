@@ -11,6 +11,7 @@ open module com.ech.kitchen {
     requires spring.boot.autoconfigure;
     requires java.annotation;
     requires org.mapstruct.processor;
+    requires spring.core;
 
     exports com.ech.kitchen.mo;
     exports com.ech.kitchen.service;
