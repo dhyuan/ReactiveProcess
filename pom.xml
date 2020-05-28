@@ -20,7 +20,7 @@
 	<description>Demo project for CSS Engineering Challenge Homework</description>
 
 	<properties>
-		<java.version>14</java.version>
+		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<jackson.version>2.10.4</jackson.version>
@@ -90,11 +90,11 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>${apache.common.util.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.jacoco</groupId>
-			<artifactId>jacoco-maven-plugin</artifactId>
-			<version>0.8.5</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.jacoco</groupId>-->
+<!--			<artifactId>jacoco-maven-plugin</artifactId>-->
+<!--			<version>0.8.5</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -140,6 +140,7 @@
 					</includes>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -158,7 +159,7 @@
 							<goal>report</goal>
 						</goals>
 					</execution>
-					<!-- Threshold -->
+
 					<execution>
 						<id>coverage-check</id>
 						<goals>
@@ -185,6 +186,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 		</plugins>
 	</build>
 	<repositories>

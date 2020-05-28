@@ -1,7 +1,6 @@
 package com.ech.kitchen.mo;
 
 import com.ech.order.mo.Order;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,22 +13,28 @@ import static com.ech.kitchen.mo.ShelfTemperatureEnum.Any;
 
 @Slf4j
 public class CookedOrder {
-    @Getter @Setter
+    @Getter
+    @Setter
     private Order order;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Instant receivedByKitchenTime;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Instant cookedDoneTime;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Instant orderOnShelfTime;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Shelf shelf;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Instant deliveredTime;
 
     public CookedOrder() {

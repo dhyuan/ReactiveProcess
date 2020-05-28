@@ -10,8 +10,6 @@ open module com.ech.order {
     requires com.fasterxml.jackson.databind;
     requires lombok;
 
-//    uses com.ech.order.mo.Order;
-
     exports com.ech.order;
     exports com.ech.order.mo;
     exports com.ech.order.impl;

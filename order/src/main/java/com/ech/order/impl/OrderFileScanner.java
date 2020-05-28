@@ -40,7 +40,8 @@ public class OrderFileScanner implements IOrderScanner {
 
     private Set<IOrderObserver> orderObserverSet = new HashSet<>();
 
-    public OrderFileScanner() {}
+    public OrderFileScanner() {
+    }
 
     public OrderFileScanner(String orderFile) {
         this.orderFile = orderFile;
@@ -61,7 +62,8 @@ public class OrderFileScanner implements IOrderScanner {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             File orderFile = findOrderFile();
-            orders = objectMapper.readValue(orderFile, new TypeReference<List<Order>>(){});
+            orders = objectMapper.readValue(orderFile, new TypeReference<List<Order>>() {
+            });
         } catch (Exception e) {
             log.error("Failed to parse the order json from file.", e);
         }

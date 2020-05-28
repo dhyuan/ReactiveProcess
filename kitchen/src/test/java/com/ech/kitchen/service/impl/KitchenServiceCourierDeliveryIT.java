@@ -1,6 +1,6 @@
 package com.ech.kitchen.service.impl;
 
-import com.ech.kitchen.service.ICourierService;
+import com.ech.kitchen.courier.service.ICourierService;
 import com.ech.kitchen.service.IKitchenService;
 import com.ech.order.IOrderObserver;
 import com.ech.order.IOrderScanner;

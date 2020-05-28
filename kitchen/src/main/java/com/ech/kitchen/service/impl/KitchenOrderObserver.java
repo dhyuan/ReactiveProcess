@@ -71,6 +71,8 @@ public class KitchenOrderObserver implements IOrderObserver<Order> {
         return Optional.empty();
     }
 
+    /** The following are implementation for org.reactivestreams.Subscriber. */
+
     @Override
     public void onSubscribe(Subscription subscription) {
         log.info("Kitchen are ready to receive orders.");

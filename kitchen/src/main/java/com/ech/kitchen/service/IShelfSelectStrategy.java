@@ -10,6 +10,7 @@ public interface IShelfSelectStrategy {
 
     /**
      * Place the cookedOrder in a shelf. Subclass can provided different algorithm to decide how to choose a shelf.
+     *
      * @param pickupArea
      * @param cookedOrder
      */

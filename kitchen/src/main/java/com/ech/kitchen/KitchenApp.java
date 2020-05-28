@@ -1,6 +1,6 @@
 package com.ech.kitchen;
 
-import com.ech.kitchen.service.ICourierService;
+import com.ech.kitchen.courier.service.ICourierService;
 import com.ech.kitchen.service.IKitchenService;
 import com.ech.order.IOrderObserver;
 import com.ech.order.IOrderScanner;
@@ -15,18 +15,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.io.support.ResourcePropertySource;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.Arrays;
 
 @SpringBootApplication
 @PropertySource("classpath:/application.properties")
 @Slf4j
 public class KitchenApp {
+    @Autowired
+    private AbstractEnvironment env;
 
     @Value("${order.file.name:order.json}")
     private String orderFileName;
@@ -35,42 +34,29 @@ public class KitchenApp {
     private long ingestionRate;
 
     @Bean
-    public IOrderScanner orderScanner() {
+    IOrderScanner orderScanner() {
         return new OrderFileScanner(orderFileName, ingestionRate);
     }
 
     @Autowired
-    public IOrderScanner orderScanner;
+    private IOrderScanner orderScanner;
 
     @Autowired
-    public IOrderObserver kitchenOrderReceiver;
+    private IOrderObserver kitchenOrderReceiver;
 
     @Autowired
-    public ICourierService courierService;
+    private ICourierService courierService;
 
     @Autowired
-    public IKitchenService kitchenService;
+    private IKitchenService kitchenService;
 
     public static void main(final String[] args) throws IOException {
         SpringApplication.run(KitchenApp.class, args);
     }
 
-    private void showAppSettings() {
-
-    }
-
-    public void showAppProperties() {
-        Map<String, Object> map = new HashMap();
-        for(Iterator it = ((AbstractEnvironment) env).getPropertySources().iterator(); it.hasNext(); ) {
-            AbstractEnvironment propertySource = it.next();
-            log.info("===" + propertySource.toString());
-
-        }
-    }
-
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
-        showAppProperties();
+        showAppSettings();
         return args -> {
             orderScanner.setIngestionRate(ingestionRate);
             orderScanner.registerOrderObserver(kitchenOrderReceiver);
@@ -80,4 +66,16 @@ public class KitchenApp {
             courierService.start();
         };
     }
+
+    private void showAppSettings() {
+        log.info("---------- CSS Application Settings Begin----------");
+        env.getPropertySources()
+                .stream()
+                .filter(ps -> ps instanceof ResourcePropertySource)
+                .map(ps -> (ResourcePropertySource) ps)
+                .flatMap(rps -> Arrays.asList(rps.getPropertyNames()).stream())
+                .forEach(name -> log.info("{}={}", name, env.getProperty(name)));
+        log.info("---------- CSS Application Settings End----------");
+    }
+
 }

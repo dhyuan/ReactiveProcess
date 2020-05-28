@@ -15,11 +15,7 @@ import reactor.test.StepVerifier;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.ech.order.impl.ExpectedOrderData.ORDER_1_ID;
-import static com.ech.order.impl.ExpectedOrderData.ORDER_1_NAME;
-import static com.ech.order.impl.ExpectedOrderData.ORDER_2_NAME;
-import static com.ech.order.impl.ExpectedOrderData.ORDER_2_TEMP;
-import static com.ech.order.impl.ExpectedOrderData.ORDER_5_NAME;
+import static com.ech.order.impl.ExpectedOrderData.*;
 import static java.time.Duration.ofSeconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +33,10 @@ public class OrderFileScannerIT {
 
     final private static int TWO_SECONDS = 2000;
     final private static int THREE_SECONDS = 3000;
+
+    /**
+     * Test the order scanner provide one order every a second.
+     */
     @Test
     public void testOrderIngestionRateAtOneSecond() {
         final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME, TWO_SECONDS);
@@ -53,6 +53,10 @@ public class OrderFileScannerIT {
                 .verify();
     }
 
+
+    /**
+     * Test the order scanner provide one order every three seconds.
+     */
     @Test
     public void testOrderIngestionRateAtThreeSecond() {
         final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME, THREE_SECONDS);
@@ -68,6 +72,11 @@ public class OrderFileScannerIT {
                 .verify();
     }
 
+    /**
+     * Test the OrderScanner can provide orders to its subscriber.
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testOrderNotification() throws InterruptedException {
         final IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
@@ -88,13 +97,23 @@ public class OrderFileScannerIT {
                 case 1:
                     assertEquals(ORDER_1_ID, order.getId());
                     assertEquals(ORDER_1_NAME, order.getName());
+                    assertEquals(ORDER_1_TEMP, order.getTemp().name());
+                    assertEquals(ORDER_1_DECAYRATE, order.getDecayRate());
+                    assertEquals(ORDER_1_SHELFLIFE, order.getShelfLife());
                     break;
                 case 2:
+                    assertEquals(ORDER_2_ID, order.getId());
                     assertEquals(ORDER_2_NAME, order.getName());
                     assertEquals(ORDER_2_TEMP, order.getTemp().name());
+                    assertEquals(ORDER_2_DECAYRATE, order.getDecayRate());
+                    assertEquals(ORDER_2_SHELFLIFE, order.getShelfLife());
                     break;
                 case 5:
+                    assertEquals(ORDER_5_ID, order.getId());
                     assertEquals(ORDER_5_NAME, order.getName());
+                    assertEquals(ORDER_5_TEMP, order.getTemp().name());
+                    assertEquals(ORDER_5_DECAYRATE, order.getDecayRate());
+                    assertEquals(ORDER_5_SHELFLIFE, order.getShelfLife());
                     break;
             }
 

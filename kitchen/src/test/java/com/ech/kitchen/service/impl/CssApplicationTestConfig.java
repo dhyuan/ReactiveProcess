@@ -1,8 +1,9 @@
 package com.ech.kitchen.service.impl;
 
+import com.ech.kitchen.courier.service.ICourierService;
+import com.ech.kitchen.courier.service.impl.CourierService;
 import com.ech.kitchen.mo.Kitchen;
 import com.ech.kitchen.service.ICookedOrderPickStrategy;
-import com.ech.kitchen.service.ICourierService;
 import com.ech.kitchen.service.IExpiredOrderCheckingService;
 import com.ech.kitchen.service.IKitchenService;
 import com.ech.kitchen.service.IShelfSelectStrategy;
@@ -11,7 +12,6 @@ import com.ech.order.IOrderScanner;
 import com.ech.order.impl.OrderFileScanner;
 import com.ech.order.mo.Order;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,7 +24,7 @@ public class CssApplicationTestConfig {
     private String orderFileName;
 
     @Value("${order.ingestion.rate:500}")
-    int ingestionRate;
+    private int ingestionRate;
 
     @Value("#{${kitchen.shelf.capacity}}")
     private Map<String, Integer> shelfCapacities;
@@ -59,7 +59,7 @@ public class CssApplicationTestConfig {
 
     @Bean
     public IShelfSelectStrategy shelfChoicer() {
-        return new StrategyPutOrderOnShelf();
+        return new StrategyOfPutOrderOnShelf();
     }
 
     @Bean
@@ -69,7 +69,7 @@ public class CssApplicationTestConfig {
 
     @Bean
     public ICookedOrderPickStrategy cookedOrderPickStrategy() {
-        return new CookedOrderRandomPicker();
+        return new StrategyOfRandomPickCookedOrder();
     }
 
     @Bean
@@ -102,4 +102,5 @@ public class CssApplicationTestConfig {
         kitchen.buildPickupArea();
         return kitchen;
     }
+
 }

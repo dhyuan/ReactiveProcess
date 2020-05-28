@@ -14,15 +14,19 @@ import java.util.Set;
 public interface IOrderScanner {
 
     List<Order> readAllOrders();
+
     Flux<Order> readOrderAsFlux();
 
     void registerOrderObserver(IOrderObserver orderObserver);
+
     void unRegisterOrderObserver(IOrderObserver orderObserver);
+
     Set<IOrderObserver> getAllOrderObserver();
 
     long getIngestionRate();
 
     void setOrderFile(String orderFile);
+
     void setIngestionRate(long timePerOneOrder);
 
     Flux<Order> startOrderScanner();

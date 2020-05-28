@@ -3,48 +3,57 @@
 This CSS project is an engineering challenge homework.
 
 ### I) Development Environment.
-The CSS project is implemented based on Java 14 / SpringBoot 2.2.7.RELEASE / Maven 3.6.3.
-To run it up, please make sure your environment fulfill/compatible above conditions.
+The CSS project is implemented based on Java 11 / SpringBoot 2.2.7.RELEASE / Maven 3.6.3.
+To run it up, please make sure your environment is fulfill/compatible with above conditions.
 
 ### II) How the system is designed.
 There are two modules in the project: Order and Kitchen.
-Each module' code is group as mo, service interface and service implementation.
+Each module has three packages 'model object', 'service interface' and 'service implementation'.
 
 ##### 1) Order module
  Order module provides two functions.
- 1) Parses the order json file and convert the file data as order objects.
  
- order.file.name property is used to specify where's the json file.
+ 1) Parses the order json file and convert the file content into  order objects.
  
- 2) Provides order object to outside system throw Flux.
-
-order.ingestion.rate perperty is used to controll the ingestion rate to other system. And beause of using Flux, 
-the system acquire the ability of reactive. Any system wants to receive the orders need to implements the 
+ order.file.name property is used to define where's the json file.
+ 
+ 2)  An interface is defined for other system that need receive orders.
+ 
+This order register/notify sub-system depends org.reactivestream and reactor. Because of using Flux, the system acquire the ability of reactive. Any system wants to receive the orders need to implements the 
 interface IOrderObserver<Order>.
- 
+
+order.ingestion.rate property is used to control the rate of sending  orders to other system. 
  
 ##### 2) Kitchen module
-This module is the core of the system. It has the functions to 
-1) Receive orders
-    KitchenOrderObserver implements IOrderObserver. 
+This module is the core of the system. It has the functions to :
+
+1) Receive orders.
+
+KitchenOrderObserver implements IOrderObserver to receive orders from json file. 
     
-2) Put order on right shelf
+2) Put order on right shelf based on a kind of algorithm.
+
+StrategyOfPutOrderOnShelf implements the interface IShelfSelectStrategy to provide an algorithm which satisfy the requirement of this homework.
 
 3) Clear expired orders (orderValue<0).
 
+ExpiredOrderChecker implements IExpiredOrderCheckingService provides concrete method about how to clean the expired orders.
 
 4) Use courier to delivery the cooked order.
 In fact, the courier can be separated into another module. In order 
-to simplify its implementation was added in this module. But the interface ICourierService 
-and ICookedOrderProvider are defined to make sure it can be refactored easier.
+to simplify its implementation, it was added into the sub-package courier. But the interface ICourierService 
+and ICookedOrderProvider are defined to make it can be refactored into separate module easily.
 
-The class KitchenSystem glue all above services together. On the other hand, the model object Kitchen works as an entity.
-The shelf belongs to Kitchen and CookedOrder can related a Shelf.
-The CookedOrder is used to model the received and processed order in the Kitchen module. 
+StrategyOfRandomPickCookedOrder implements ICookedOrderPickStrategy to provide a concrete implementation of how to pick up a cooked order for courier to delivery.
+
+The class KitchenSystem glue all above services together. 
+
+#### 3) About model objects
+The model object Kitchen works as an entity. A shelf belongs to a Kitchen. The CookedOrder is used to model the received and processed Order in the Kitchen system. It includes the original Order and other properties related with kitchen process. The CookedOrder relates with a Shelf after cooked.
 
 
 ### III) How to Build & Test & Run the code.
-unzip the css_dahui.zip to your preferred directory.
+unzip the css_dahui.zip in your preferred directory.
 
 ##### 1) Go to the project root dir.
 cd css
@@ -54,28 +63,40 @@ mvn clean verify
 
 All the process needs about 3 minutes.  
 Or you can run specific test case, such as:
+
 mvn test -pl kitchen -Dtest=KitchenSystemIT
+
 mvn test -pl kitchen -Dtest=OrderOnShelfTTLCalculatorTest
+
 mvn test -pl order -Dtest=OrderFileScannerIT
-...
+
 
 ##### 3) Run the kitchen system up.
-##### Run by jar
-java -jar ./kitchen/target/kitchen-0.0.1-SNAPSHOT-exec.jar \
---order.file.name=/Users/dahui/tmp/orders.json \
---order.ingestion.rate=2000
 
-##### Or you can run this application by Maven spring-boot plugin.
-mvn spring-boot:run -pl kitchen -Dspring-boot.run.arguments="\
---order.file.name=/Users/dahui/tmp/orders.json \
---order.ingestion.rate=2000 \
---kitchen.order.checker.period=5000 \
---courier.sleep.min=2000 --courier.sleep.max=6000"
+Please change the order.json file path based on your environment.
+
+###### Run by jar. ()
+
+	java -jar ./kitchen/target/kitchen-0.0.1-SNAPSHOT-exec.jar \
+	--order.file.name=/Users/dahui/tmp/orders.json \
+	--order.ingestion.rate=2000 \
+	--kitchen.order.checker.period=5000 \
+	--courier.sleep.min=2000 --courier.sleep.max=6000 \
+	--kitchen.shelf.capacity="{Hot: '10', Cold: '10', Frozen: '10', Any: '15'}"
+
+###### Or you can run this application by Maven spring-boot plugin.
+
+	mvn spring-boot:run -pl kitchen -Dspring-boot.run.arguments="\
+	--order.file.name=/Users/dahui/tmp/orders.json \
+	--order.ingestion.rate=2000 \
+	--kitchen.order.checker.period=5000 \
+	--courier.sleep.min=2000 --courier.sleep.max=6000" \
+	--kitchen.shelf.capacity="{Hot: '10', Cold: '10', Frozen: '10', Any: '15'}"
 
 
 ##### 4) About Application Setting
 All the configurable settings can be found in ./kitchen/src/main/resources/application.properties.
-There three kinds of setting for 'Order', 'Kitchen Process' and 'Courier Delivery'. 
+They're three kinds of setting for 'Order', 'Kitchen Process' and 'Courier Delivery'. 
 You can override these values from command line as showed above.
 
     # ===== Order Setting ==============================
@@ -105,6 +126,8 @@ You can override these values from command line as showed above.
     
     # ===== Courier Setting =====
     courier.worker.thread.pool.size=20
+    # millisecond
     courier.sleep.min=2000
+    # millisecond
     courier.sleep.max=6000
     

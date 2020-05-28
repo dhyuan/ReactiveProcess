@@ -11,9 +11,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
@@ -21,6 +19,9 @@ public class OrderFileScannerTest {
 
     final private static String ORDERS_JSON_FILENAME = "orders_5.json";
 
+    /**
+     * Test to register a subscribe.
+     */
     @Test
     public void testRegisterOrderObserver() {
         IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
@@ -30,6 +31,9 @@ public class OrderFileScannerTest {
         assertEquals(1, orderScanner.getAllOrderObserver().size());
     }
 
+    /**
+     * Test to register and un-register subscribe.
+     */
     @Test
     public void testUnRegisterOrderObserver() {
         IOrderScanner orderScanner = new OrderFileScanner(ORDERS_JSON_FILENAME);
@@ -44,6 +48,11 @@ public class OrderFileScannerTest {
         assertEquals(1, orderScanner.getAllOrderObserver().size());
     }
 
+    /**
+     * Test parsing the order json file to order objects.
+     *
+     * @throws URISyntaxException
+     */
     @Test
     public void testParseOrdersFromFile() throws URISyntaxException {
         IOrderScanner orderReceiver = new OrderFileScanner(ORDERS_JSON_FILENAME);
@@ -67,6 +76,11 @@ public class OrderFileScannerTest {
         assertEquals(0.37f, lastOrder.getDecayRate());
     }
 
+    /**
+     * Test parse the json file by using abstract file path.
+     *
+     * @throws URISyntaxException
+     */
     @Test
     public void testAbsoluteFilePath() throws URISyntaxException {
         final String filePath = new File("").getAbsolutePath() + "/src/test/resources/orders_5.json";

@@ -1,13 +1,14 @@
 package com.ech.kitchen.service.impl;
 
 import com.ech.kitchen.mo.Kitchen;
-import com.ech.kitchen.service.ICourierService;
+import com.ech.kitchen.courier.service.ICourierService;
 import com.ech.kitchen.service.IExpiredOrderCheckingService;
 import com.ech.kitchen.service.IKitchenService;
 import com.ech.kitchen.service.IShelfSelectStrategy;
 import com.ech.order.IOrderObserver;
 import com.ech.order.IOrderScanner;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ public class KitchenSystemIT extends BaseIT {
     private Kitchen kitchen;
 
     @Test
+    @Tag("MassDataTest")
     public void testFullScenario() {
         // NOTE: this EXPECTED_ORDER_AMOUNT value should consistent to the record number in your orders json file !
         final int EXPECTED_ORDER_AMOUNT = 132;

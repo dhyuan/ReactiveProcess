@@ -23,7 +23,6 @@ public class Shelf {
     private final BlockingQueue<CookedOrder> cookedOrderQueue;
 
 
-
     public Shelf(ShelfTemperatureEnum allowableTemperature, int maxCapacity) {
         this.allowableTemperature = allowableTemperature;
         this.maxCapacity = maxCapacity;
@@ -59,7 +58,7 @@ public class Shelf {
 
     public synchronized boolean addWithoutException(CookedOrder cookedOrder) {
         if (cookedOrderQueue.size() == maxCapacity) {
-            log.error("Exception: %s is full. Cannot accept order {}.", this, cookedOrder);
+            log.error("Exception: {} is full. Cannot accept order {}.", this, cookedOrder);
             return false;
         }
         final boolean isAdded = cookedOrderQueue.add(cookedOrder);

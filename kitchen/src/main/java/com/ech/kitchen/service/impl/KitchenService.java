@@ -1,9 +1,9 @@
 package com.ech.kitchen.service.impl;
 
+import com.ech.kitchen.courier.service.ICookedOrderProvider;
 import com.ech.kitchen.mo.CookedOrder;
 import com.ech.kitchen.mo.Kitchen;
 import com.ech.kitchen.service.ICookedOrderPickStrategy;
-import com.ech.kitchen.service.ICookedOrderProvider;
 import com.ech.kitchen.service.IExpiredOrderCheckingService;
 import com.ech.kitchen.service.IKitchenService;
 import com.ech.kitchen.service.IShelfSelectStrategy;
@@ -60,7 +60,7 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
 
         processIncomingOrders();
 
-        expiredOrderCheckingService.workOn(kitchen.getShelvesInPickupArea());
+        expiredOrderCheckingService.check(kitchen.getShelvesInPickupArea());
     }
 
     private void processIncomingOrders() {
@@ -70,7 +70,9 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
                 if (orderOptional.isEmpty()) {
                     log.warn("There's no order for a while. Let's wait ...");
                 } else {
-                    incomingOrderCounter.incrementAndGet();
+                    final long totalNumb = incomingOrderCounter.incrementAndGet();
+                    log.info("Kitchen accept order {}.", totalNumb);
+
                     final CookedOrder cookedOrder = new CookedOrder();
                     final Order order = orderOptional.get();
                     cookedOrder.setOrder(order);
@@ -78,13 +80,10 @@ public class KitchenService implements IKitchenService, ICookedOrderProvider {
                     log.info("An order in kitchen ...");
                     cookedOrder.setReceivedByKitchenTime(Instant.now());
 
-                    log.info("Cook Done! {}", order);
+                    log.info("Cook Done! {}", order.toString());
                     cookedOrder.setCookedDoneTime(Instant.now());
 
                     shelfChoicer.putOrderOnShelf(kitchen.getPickupArea(), cookedOrder);
-
-
-                    log.info("Kitchen order summary: {}.", incomingOrderCounter.longValue());
                 }
             }
             log.info("Kitchen closed. isOpen={}", isOpen);

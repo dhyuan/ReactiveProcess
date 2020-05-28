@@ -19,11 +19,13 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class ExpiredOrderChecker implements IExpiredOrderCheckingService {
 
-    @Getter @Setter
+    @Getter
+    @Setter
     @Value("${kitchen.order.expire.checker.delay:2000}")
     private long checkerInitialDelay;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     @Value("${kitchen.order.expire.checker.period:5000}")
     private long checkerPeriod;
 
@@ -34,7 +36,7 @@ public class ExpiredOrderChecker implements IExpiredOrderCheckingService {
     private AtomicLong failedCleanCounter = new AtomicLong(0);
 
     @Override
-    public void workOn(Collection<Shelf> shelves) {
+    public void check(Collection<Shelf> shelves) {
         scheduledExecutor.scheduleAtFixedRate(() -> {
             try {
                 if (CollectionUtils.isEmpty(shelves)) {
@@ -51,7 +53,7 @@ public class ExpiredOrderChecker implements IExpiredOrderCheckingService {
                             final boolean isRemoved = cookedOrder.getShelf().remove(cookedOrder);
                             if (isRemoved) {
                                 final long count = expiredOrderCounter.incrementAndGet();
-                                log.info("{} is recycled. Total dropped ", cookedOrder, count);
+                                log.info("{} is recycled. Total dropped {}", cookedOrder, count);
                             } else {
                                 failedCleanCounter.incrementAndGet();
                                 log.error("Failed to remove {}", cookedOrder);
