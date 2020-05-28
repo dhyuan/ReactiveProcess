@@ -56,19 +56,21 @@ The model object Kitchen works as an entity. A shelf belongs to a Kitchen. The C
 unzip the css_dahui.zip in your preferred directory.
 
 ##### 1) Go to the project root dir.
-cd css
+
+    cd css_dahui
 
 ##### 2) Build & Run all the test cases    
-mvn clean verify
+
+    mvn clean verify
 
 All the process needs about 3 minutes.  
 Or you can run specific test case, such as:
 
-mvn test -pl kitchen -Dtest=KitchenSystemIT
-
-mvn test -pl kitchen -Dtest=OrderOnShelfTTLCalculatorTest
-
-mvn test -pl order -Dtest=OrderFileScannerIT
+    mvn test -pl kitchen -Dtest=KitchenSystemIT
+    
+    mvn test -pl kitchen -Dtest=OrderOnShelfTTLCalculatorTest
+    
+    mvn test -pl order -Dtest=OrderFileScannerIT
 
 
 ##### 3) Run the kitchen system up.
@@ -90,8 +92,8 @@ Please change the order.json file path based on your environment.
 	--order.file.name=/Users/dahui/tmp/orders.json \
 	--order.ingestion.rate=2000 \
 	--kitchen.order.checker.period=5000 \
-	--courier.sleep.min=2000 --courier.sleep.max=6000" \
-	--kitchen.shelf.capacity="{Hot: '10', Cold: '10', Frozen: '10', Any: '15'}"
+	--courier.sleep.min=2000 --courier.sleep.max=6000 \
+	--kitchen.shelf.capacity=\"{Hot: '10', Cold: '10', Frozen: '10', Any: '15'}\""
 
 
 ##### 4) About Application Setting

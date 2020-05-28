@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -83,7 +85,10 @@ public class OrderFileScannerTest {
      */
     @Test
     public void testAbsoluteFilePath() throws URISyntaxException {
-        final String filePath = new File("").getAbsolutePath() + "/src/test/resources/orders_5.json";
+        Path subDir = Paths.get("src", "test", "resources", "orders_5.json");
+        final String filePath = new File("").getAbsolutePath()
+                + File.separator
+                + subDir.toString();
         log.info("filePath = " + filePath);
 
         IOrderScanner orderReceiver = new OrderFileScanner(filePath);

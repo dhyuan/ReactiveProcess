@@ -103,16 +103,22 @@ public class OrderFileScanner implements IOrderScanner {
         return orderFlux;
     }
 
-    private File findOrderFile() throws Exception {
+    private File findOrderFile() {
         log.info("orderFile={}", orderFile);
         String jsonFilePath = orderFile.trim();
-        if (!orderFile.startsWith(File.separator)) {
-            URL jsonFileURL = this.getClass().getModule().getClassLoader().getResource(orderFile);
-            if (jsonFileURL == null) {
-                jsonFileURL = this.getClass().getClassLoader().getResource(orderFile);
+        try {
+            // If order file path is relative path, try to figure out its abstract path.
+            if (!orderFile.startsWith(File.separator)) {
+                URL jsonFileURL = this.getClass().getModule().getClassLoader().getResource(orderFile);
+                if (jsonFileURL == null) {
+                    jsonFileURL = this.getClass().getClassLoader().getResource(orderFile);
+                }
+                jsonFilePath = Paths.get(jsonFileURL.toURI()).toFile().getAbsolutePath();
             }
-            jsonFilePath = Paths.get(jsonFileURL.toURI()).toFile().getAbsolutePath();
+        } catch (Exception e) {
+            log.info("Failed to figure out its abstract path. Use it as abstract path");
         }
+
         final File jsonFile = Paths.get(jsonFilePath).toFile();
         log.info("Find the orders file in {}", jsonFilePath);
 
